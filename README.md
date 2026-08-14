@@ -9,7 +9,7 @@ Below, a test of how the readme will look like:
 
 # Ai-Chan Companion
 
-> An intelligent companion for **REPO**, inspired by Aino. Ai-Chan follows the team, accepts light items, brings objects to the cart, can carry tumbled players, and includes chat commands, interactive physics, and Steam-powered multiplayer synchronization.
+> An intelligent companion for **REPO**. Ai-Chan follows the team, accepts light items(can change in configs), brings objects to the cart, can carry tumbled players, and includes chat commands, interactive physics, and Steam-powered multiplayer synchronization.
 
 **Plugin GUID:** `com.neko3004.aichancompanion`
 
