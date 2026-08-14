@@ -31,14 +31,14 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 - Automatic owner switching in multiplayer.
 - Manual owner switching by the current owner.
 - Chat commands to call, send away, jump, play dead, and change size.
-- Petting system with animation, sound, and heart particles.
+- Petting system with animation, sound, and heart particles(heart particles not working properly yet).
 - Can be grabbed, carried, and thrown by players.
 - Falling physics and recovery after being released or hit.
-- No physical collision with players, preventing unwanted blocking and pushing.
+- No physical collision with players, preventing unwanted blocking and pushing(clients still have some collision, working on a fix...).
 - NavMesh movement, automatic jumps when stuck, and an emergency safety teleport.
-- Accepts light objects held by players.
-- Carries accepted items to the cart/delivery objective when a valid target is available.
-- Can carry players in a downed/tumble state.
+- Accepts light(or heavy if changed in the configs) objects held by players.
+- Carries accepted items to the cart/delivery objective when a valid target is available, if two carts or more are present in the match she chooses the nearest, if no carts are present she will go to the actual active extractor.
+- Can carry players in a tumble state.
 - Movement, idle, falling, stunned, jumping, and petting animations.
 - Audio feedback for commands and interactions.
 - Synchronization for players who join an ongoing session(when level changes).
@@ -47,30 +47,24 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 
 ### Thunderstore Mod Manager
 
-1. Install **BepInExPack** for REPO if it is not already in your profile.
-2. Install **GenshinImpactOverhaul_REPO** by `GoblinKingShmee`.
-3. Install **REPO_SteamNetworking_Lib** by `Rune580`.
-4. Install **Ai-Chan Companion** in the same profile.
-5. Install **MenuLib** by `nickklmao`.
-6. Launch the game through Thunderstore Mod Manager.
+1. Install **GenshinImpactOverhaul_REPO** by `GoblinKingShmee`.
+2. Install **REPO_SteamNetworking_Lib** by `Rune580`.
+3. Install **Ai-Chan Companion** in the same profile.
+4. Install **MenuLib** by `nickklmao`.
+5. Launch the game through Thunderstore Mod Manager or another compatible mod manager.
 
-### Manual installation
-
-1. Install a BepInEx version compatible with REPO.
-2. Install `GenshinImpactOverhaul_REPO` and `REPO_SteamNetworking_Lib` in `BepInEx/plugins`.
-3. Extract `AiChanCompanion.dll` to `REPO/BepInEx/plugins/`.
-4. Launch the game once to create the configuration file.
-
-> **Important:** Ai-Chan uses the Aino prefab supplied by `GenshinImpactOverhaul_REPO`. The companion visual cannot be created without that dependency.
+> **Important:**
+> Ai-Chan uses the Aino prefab supplied by `GenshinImpactOverhaul_REPO`. The companion visual cannot be created without that dependency.
+> REPO_SteamNetworking_Lib is necessary for multiplayer.
 
 ### Multiplayer
 
-For a consistent multiplayer experience, every player in the lobby should use:
+For a consistent multiplayer experience(at least for what I tested), every player in the lobby should use:
 
 - Ai-Chan Companion on the same version;
 - GenshinImpactOverhaul_REPO;
 - REPO_SteamNetworking_Lib;
-- compatible game and dependency versions.
+- MenuLib;
 
 The mod requires strict compatibility with the Steam networking library. Using different versions can prevent loading or correct synchronization.
 
@@ -93,10 +87,12 @@ She can be grabbed and thrown. While held or falling, her navigation is paused. 
 
 ### Items and rescue
 
-1. Hold a light physics item.
+1. Hold a light or heavy physics item.
 2. Stand near Ai-Chan.
 3. Press the give-item key, `R` by default.
 4. She picks up the object and attempts to bring it to the available cart/delivery destination.
+5. If two or more player are holding the item, she will not carry to prevent sync errors.
+6. If she is grabed or fall during the delivery the item should fall in the ground near her.
 
 The same interaction can be used with a player in a downed/tumble state. Hold a downed teammate and press `R`, or, if your own character is downed, press `R` while holding no item. Ai-Chan will attempt to carry that player.
 
@@ -118,7 +114,7 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 
 | Command example | Effect | Who can use it |
 |---|---|---|
-| `Ai-Chan help` / `Aino ajuda` / `pet commands` | Shows the local help text | Any player |
+| `Ai-Chan help` / `pet commands` | Shows the local help text | Any player |
 | `Ai-Chan jump` | Makes Ai-Chan jump | Any player |
 | `Ai-Chan come` or `Ai-Chan here` | Calls Ai-Chan close to the owner | Current owner |
 | `Ai-Chan away` | Sends Ai-Chan away temporarily | Current owner |
@@ -128,7 +124,9 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 | `Ai-Chan normal` | Restores normal size (1.0x) | Current owner |
 | `Ai-Chan switch` / `pass` / `leave` | Transfers Ai-Chan to another player | Current owner |
 
-> Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
+>The mod only identify keywords, so "become small aino" will still be recognized as "Sets small size (0.5x)"
+>Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
+>Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
 
 ## Configuration
 
