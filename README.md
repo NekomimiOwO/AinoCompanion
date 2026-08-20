@@ -313,6 +313,15 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 | `PetSteamPackets.cs` | 161 | Defines the custom Steam networking packets used by the mod: state updates, spawning, item delivery, petting, player carrying, carry synchronization, owner switching, and synchronization requests. |
 | `Plugin.cs` | 71 | The mod entry point. Registers the BepInEx plugin, initializes settings, registers Steam packets, applies Harmony patches, and starts the network profiler. |
 
+## What about the others models in GenshinImpactOverhaul_REPO?
+
+ya..I briefly tested making a "general" version; I might even make it available later (without posting it because it's kind of terrible). Some models have specific peculiarities while others are easier, so I focused only on Aino, which is what initially motivated me to make this mod. But in theory, it would be possible to extend this in the future... or maybe load custom models. I don't know how imports work... hence the dependency on the GenshinImpactOverhaul_REPO mod.
+
+Don't expect many updates, since I'm busy with a lot of things... nya~
+
+Anyway, I hope you have fun and give Aino lots of headpats!~
+
+
 ## Contact
 
 You can contact me at discord: nekomimiowo
