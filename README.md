@@ -92,7 +92,7 @@ She can be grabbed and thrown. While held or falling, her navigation is paused. 
 
 ### Items and rescue
 
-1. Hold a physics item.
+1. Hold a physics item (She will not pick up carts, monters, doors, etc [for now she does not pick up dead players, maybe in the future she will]).
 2. Stand near Ai-Chan.
 3. Press the give-item key, `R` by default.
 4. She picks up the object and attempts to bring it to the available cart/delivery destination.
@@ -102,6 +102,17 @@ She can be grabbed and thrown. While held or falling, her navigation is paused. 
 The same interaction can be used with a player in a downed/tumble state. Hold a downed teammate and press `R`, or, if your own character is downed, press `R` while holding no item. Ai-Chan will attempt to carry that player.
 
 > The accepted maximum item mass is configurable and defaults to 3. The internal item-give distance defaults to 4.5 m. Carried items can optionally scale to match Ai-Chan's current size by enabling the `Inherit Pet Scale On Carry` setting.
+
+### Shop extractor behavior
+
+In the shop, Ai-Chan can deliver items to the **Extraction Point** (the shop's "cart" equivalent). For this to work correctly:
+
+- The extraction point must be **unlocked and active**.
+- If the extraction point is locked, Ai-Chan will **instantly drop the item or player** at her feet instead of attempting delivery.
+- This prevents the pet from getting stuck trying to deliver to an unavailable objective.
+- She will not pick up carts.
+
+When a valid extraction point is available, Ai-Chan approaches it and drops the item at a randomized position within the "In Cart" collider to avoid stacking items exactly on top of each other.
 
 ## Controls
 
