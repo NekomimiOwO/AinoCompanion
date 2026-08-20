@@ -292,3 +292,8 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 - Sometimes she won't find the path to the cart if it is too far away of if the mat has dead-ends on the way back.
 - Her pathfinding is kinda experimental, so she might get lost if no one is in her base vision.
 - When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
+
+## Contact
+
+You can contact me at discord: nekomimiowo
+Or at the github of this mod: https://github.com/NekomimiOwO
