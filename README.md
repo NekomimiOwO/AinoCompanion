@@ -36,21 +36,19 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 - Can be grabbed, carried, and thrown by players.
 - Falling physics, knockdown impact resistance, and recovery after being released or hit by fast-moving objects.
 - No physical collision with players, preventing unwanted blocking and pushing.
-- Advanced NavMesh movement with Ghost Probing to avoid tables/walls, automatic jumps when stuck, native door opening, and an emergency safety teleport.
+- Advanced NavMesh movement with Ghost Probing to avoid tables/walls, automatic jumps when stuck, try door opening, and an emergency safety teleport when stuck.
 - Accepts objects held by players based on configurable mass limits.
-- **Carried Item Scaling:** Items can optionally inherit her scale while she carries them.
+- **Carried Item Scaling:** Items can optionally inherit her scale while she carries them (host only config).
 - Carries accepted items to the cart/delivery objective when a valid target is available. If two carts or more are present, she chooses the nearest; if no carts are present, she will go to the active extractor.
 - Can carry players in a tumble state.
-- Movement, idle, falling, stunned, jumping, and petting animations.
 - Audio feedback for commands and interactions.
-- Network Profiler for tracking data usage.
-- Synchronization for players who join an ongoing session (when level changes).
+- Network Profiler for tracking the mod steam data usage.
 
 ## Installation
 
 ### Thunderstore Mod Manager
 
-1. Install **GenshinImpactOverhaul_REPO** by `GoblinKingShmee`.
+1. Install **GenshinImpactOverhaul_REPO** by `GoblinKingShmee`. (If you want Aino but don't want the GenshinImpactOverhaul_REPO mod to replace the enemies, simply disable the replacement in the GenshinImpactOverhaul_REPO mod settings; my mod should still work.)
 2. Install **REPO_SteamNetworking_Lib** by `Rune580`.
 3. Install **Ai-Chan Companion** in the same profile.
 4. Install **MenuLib** by `nickklmao`.
@@ -61,6 +59,8 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 > REPO_SteamNetworking_Lib is necessary for multiplayer.
 
 ### Multiplayer
+
+Multiplayer should already work for now...at least for what I tested with my friend, which I'm grateful for spending hours with me compiling, open the game, test, fail, fix, compile,open...etc <3 
 
 For a consistent multiplayer experience, every player in the lobby should use:
 
@@ -84,7 +84,7 @@ The mod requires strict compatibility with the Steam networking library. Using d
 
 ### Movement and recovery
 
-Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the new Ghost Probing system, she anticipates walls and obstacles to navigate smoothly. She can also automatically open closed doors in her path. 
+Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the new Ghost Probing system, she anticipates walls and obstacles to navigate. She can also  open closed doors(or at least try) in her path. 
 
 If she encounters an obstacle or a partial path, she may perform an automatic jump. If she remains far above her owner for several seconds or falls into the void, the safety system teleports her to a navigable position near the owner.
 
@@ -107,11 +107,11 @@ The same interaction can be used with a player in a downed/tumble state. Hold a 
 
 | Action | Default key | Requirements |
 |---|---:|---|
-| Pet Ai-Chan | `E` | Be within 3 m, look at Ai-Chan, and respect the 1-second cooldown |
+| Pet Ai-Chan | `E` | Be within 3 m, look at Ai-Chan, has an 1 second cooldown |
 | Give item / carry player | `R` | Be near the pet; the item or player must be valid |
 | Switch owner | `F5` | Only the current owner can use it |
 
-All three keys can be changed in the BepInEx configuration.
+All three keys can be changed in the configuration.
 
 ## Chat commands
 
@@ -128,12 +128,13 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 | `Ai-Chan small` | Sets small size (0.5x) | Current owner |
 | `Ai-Chan big` | Sets large size (1.8x) | Current owner |
 | `Ai-Chan normal` | Restores normal size (1.0x) | Current owner |
-| `Ai-Chan size 2.5` | Sets a custom exact size (e.g., 2.5x) | Current owner |
+| `Ai-Chan size 2.5`/`Ai-Chan size 0.1` etc... | Sets a custom exact size (e.g., 2.5x) | Current owner |
 | `Ai-Chan switch` / `pass` | Transfers Ai-Chan to another player | Current owner |
 
 > The mod only identifies keywords, so "become small aino" will still be recognized as "Sets small size (0.5x)".
 > Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
 > Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
+> Why not just a keybind? Aside from there being so many commands, I thought it would be cool to hear commands from friends, since the game has a chat-reading system.
 
 ## Configuration
 
@@ -164,7 +165,7 @@ After launching the game once, open the in‑game ModMenu configuration UI to ad
 | Performance | `Ghost Probe Distance` | `2.5` | Distance ghost probes look ahead to avoid walls |
 | Performance | `Ghost Probe Update Interval`| `0.1` | How often pathfinding is calculated (lower = faster reaction) |
 | Performance | `Ghost Probe Rays` | `7` | Number of projection rays. Higher = Smarter, Lower = Better performance |
-| Performance | `Enable Debug Rays` | `false` | Visualizes the ghost simulation paths in-game |
+| Performance | `Enable Debug Rays` | `false` | Visualizes the ghost simulation paths in-game (Only the host sees it, since all the pet's navigation calculations are handled by the host.) |
 | Performance | `Debug Rays Fade Time` | `0.25` | How long debug rays remain visible on screen |
 | Performance | `Debug Breadcrumbs Fade Time`| `0.15` | How long breadcrumb trail rays remain visible |
 
@@ -176,13 +177,12 @@ Ai-Chan Companion combines the game's Photon room infrastructure with **REPO Ste
 
 ### Authority
 
-The Master Client is responsible for world-changing simulation:
+The Master Client is responsible for:
 
 - creating Ai-Chan in online sessions;
 - running navigation, AI, door interactions, and relevant physics;
 - processing item-give and player-carry requests;
 - switching the owner;
-- publishing authoritative state.
 
 Remote clients do not run pet navigation or physics. They reproduce the received position, rotation, state, and owner, while keeping the `Rigidbody` kinematic to avoid physics divergence.
 
@@ -219,8 +219,6 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 
 - Confirm that `GenshinImpactOverhaul_REPO` is installed and loads before this mod.
 - Confirm that `REPO_SteamNetworking_Lib` is installed.
-- Start a run or enter the shop; Ai-Chan does not spawn in the menu or lobby.
-- Wait for level generation and the NavMesh to become available.
 - Check the BepInEx console for errors and keep `Enable Debug Logs = true` while diagnosing the issue.
 
 ### A client cannot see the pet
@@ -233,8 +231,7 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 
 - Stay within the configured interaction distance.
 - Hold a valid physics item that does not exceed `Max Carried Mass`.
-- Make sure the pet is not dead, grabbed, or stunned.
-- In multiplayer, wait for the host to process the request.
+- Make sure the pet isn't already carrying something.
 
 ### Ai-Chan appears stuck
 
@@ -255,21 +252,32 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 - **Ai-Chan Companion:** mod development.
 - **BepInEx:** plugin loader.
 - **Harmony:** runtime patching.
-- **GenshinImpactOverhaul_REPO:** Aino prefab/visual into the game, by `GoblinKingShmee`.
+- **GenshinImpactOverhaul_REPO:** Insert Aino prefab/visual into the game, by `GoblinKingShmee`.
 - **REPO_SteamNetworking_Lib:** Steam-based packets and multiplayer synchronization by `Rune580`.
 - **MenuLib (nickklmao):** in‑game configuration UI library.
 - **REPO:** base game, physics, navigation, Photon, and interaction systems.
 
+##Thanks
+
+A big thank you to GoblinKingShmee. I asked him via Discord, and he gave me permission to use his mod to load the model it adds to the game into my own mod.
+
+
 ## Legal / Asset notice
 
 - The Aino character model and related assets are the property of **HoYoverse**. This mod does not claim ownership of, nor distribute, HoYoverse assets.
-- All other code and logic in Ai-Chan Companion are original to this mod.
 
 ## AI assistance disclaimer
 
-This mod was developed with the assistance of AI tools for code generation and refactoring. All gameplay logic, system design, implementation requirements, test plans, and iterative feedback were authored and directed by the mod author through multiple review cycles. AI was used as a productivity aid, not as the designer of the mod’s behavior or features.
+This mod was developed with the assistance of AI tools for code generation and refactoring. Since I don't know C#, I heavily relied on AI to write the code while I tested, provided feedback, compiled, and rewrote parts the way I wanted. All gameplay logic, system design, implementation requirements, test plans, and iterative feedback were authored and directed by me through multiple review cycles (I gained over 50 hours of playtime just testing the mod -_-)
 
+AI was used as a productivity aid, not as the designer of the mod's behavior or features. Most of the time, the AI would break a mechanic that was working perfectly (like grab, animations, or pathfinding/following) and couldn't fix it. When this happened, I was forced to roll back to an earlier save, losing progress. Sometimes, realizing my approach wasn't going to work, I had to start over from scratch again.
 
-## AI assistance disclaimer
+For example, I was suggested to use an in-game item as a grab mechanism for Ai-Chan by inserting the item invisibly inside the model. It kind of worked—or so I thought—but it was never going to truly work because of collision issues. If the item broke, it disappeared along with its value, mechanics, and the model of Ai-Chan. It just didn't work! :)
 
-This mod was developed with the assistance of AI tools for code generation and refactoring. All gameplay logic, system design, implementation requirements, test plans, and iterative feedback were authored and directed by the mod author through multiple review cycles. AI was used as a productivity aid, not as the designer of the mod’s behavior or features.
+A lot was fixed through this back-and-forth process. Many hours were spent on this mod, which I created with a lot of care~
+
+## Known issues
+
+- Sometimes she won't find the path to the cart if it is too far away of if the mat has dead-ends on the way back.
+- Her pathfinding is kinda experimental, so she might get lost if no one is in her base vision.
+- When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
