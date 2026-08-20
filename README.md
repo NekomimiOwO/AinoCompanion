@@ -293,6 +293,26 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 - Her pathfinding is kinda experimental, so she might get lost if no one is in her base vision.
 - When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
 
+## Mod architecture (Just for curiosity)
+
+| File | Lines(Include blank lines and comments) | Responsibility |
+|---|---:|---|
+| `AiChanAudio.cs` | 143 | Controls Ai-Chan's audio system: loading bark clips, spatial audio playback, volume, distance falloff, pitch variation, and bark cooldowns. |
+| `ElsaPetMod.csproj` | 114 | The .NET project file. Defines the target framework and references for the game DLLs, Unity, Photon, BepInEx, Harmony, Steam networking, and mod dependencies. |
+| `NetworkInterpolation.cs` | 160 | Controls network interpolation for remote clients, including snapshot frequency, smooth position/rotation corrections, teleport snapping for large desyncs, and reduced update frequency while the pet is idle. |
+| `PetCompanionController.Chat.cs` | 238 | Implements chat commands such as `come`, `here`, `away`, `jump`, `dead`, `small`, `big`, `normal`, `switch`, and custom `size` values. Also provides local help and network-stat commands. |
+| `PetCompanionController.cs` | 479 | The main Ai-Chan controller. Handles pet states, initialization, owner tracking, animations, physics, grabbing/releasing, recovery, collision knockdowns, scaling, and the primary AI update loop. |
+| `PetCompanionController.Delivery.cs` | 1026 | Controls item delivery and downed-player rescue. Finds carts and extractors, validates items, picks up and carries targets, handles drops, manages shop delivery behavior, and synchronizes carried objects. |
+| `PetCompanionController.Interactions.cs` | 238 | Controls pet interactions: petting, heart particles, petting animation, sounds, damage handling, stun behavior, and the death state. |
+| `PetCompanionController.Navigation.cs` | 1629 | Implements movement and pathfinding. Includes NavMesh following, owner switching, automatic jumps, Ghost Probing, native door opening, anti-stuck systems, breadcrumbs, manual movement fallback, floor detection, and emergency teleports. |
+| `PetInteraction.cs` | 261 | Reads local player input and converts it into pet interactions: petting, giving an item, carrying a downed player, and manually switching the owner. |
+| `PetNetworkBridge.cs` | 291 | Bridges the pet controller with Steam/Photon networking. Sends and receives state snapshots, spawn events, petting, deliveries, player rescue requests, owner switching, and carry synchronization. |
+| `PetNetworkProfiler.cs` | 82 | Tracks mod network usage: sent/received bytes, current upload/download rate, total traffic, uptime, and console statistics. |
+| `PetSettings.cs` | 251 | Registers all BepInEx configuration entries: movement, mass, interaction distance, physics, audio, controls, owner switching, Ghost Probing, debug logs, rays, and breadcrumbs. |
+| `PetSpawner.cs` | 698 | Creates and initializes Ai-Chan in levels and shops. Configures the PhotonView, Rigidbody, NavMeshAgent, colliders, Aino visual, name tag, heart particles, player collision filtering, and minimap icon. |
+| `PetSteamPackets.cs` | 161 | Defines the custom Steam networking packets used by the mod: state updates, spawning, item delivery, petting, player carrying, carry synchronization, owner switching, and synchronization requests. |
+| `Plugin.cs` | 71 | The mod entry point. Registers the BepInEx plugin, initializes settings, registers Steam packets, applies Harmony patches, and starts the network profiler. |
+
 ## Contact
 
 You can contact me at discord: nekomimiowo
