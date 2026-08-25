@@ -143,6 +143,7 @@ All three keys can be changed in the configuration.
 ## Chat commands
 
 To recognize a command, the chat message must include a pet keyword: `aino`, `ai-chan`, `aichan`, or `pet`.
+> It works with the SoloChat mod, so it doesn't necessarily need to be a hosted online room.
 
 | Command example | Effect | Who can use it |
 |---|---|---|
