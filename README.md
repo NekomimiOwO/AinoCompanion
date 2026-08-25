@@ -145,22 +145,28 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 
 | Command example | Effect | Who can use it |
 |---|---|---|
-| `Ai-Chan help` / `commands` | Shows the local help text | Any player |
-| `Ai-Chan net`| Prints network profiler stats to the local console | Any player (Local only) |
-| `Ai-Chan jump` | Makes Ai-Chan jump | Any player |
-| `Ai-Chan come` or `here` | Calls Ai-Chan close to the owner | Current owner |
-| `Ai-Chan away` | Sends Ai-Chan away temporarily | Current owner |
-| `Ai-Chan dead` or `play dead` | Makes Ai-Chan play dead for about 6 seconds | Current owner |
-| `Ai-Chan small` | Sets small size (0.5x) | Current owner |
-| `Ai-Chan big` | Sets large size (1.8x) | Current owner |
-| `Ai-Chan normal` | Restores normal size (1.0x) | Current owner |
-| `Ai-Chan size 2.5`/`Ai-Chan size 0.1` etc... | Sets a custom exact size (e.g., 2.5x) | Current owner |
-| `Ai-Chan switch` / `pass` | Transfers Ai-Chan to another player | Current owner |
+| `Ai-Chan go [dist]` / `vai [dist]` / `walk` / `anda` | Makes Ai-Chan walk to where the owner is looking (0.5m to 20m, default 4m) | Current owner |
+| `Ai-Chan explode [delay]` / `exploda` / `kaboom` | Starts an explosion countdown with beeps and warning tag (1s to 30s) or explodes immediately | Current owner (if enabled) |
+| `Ai-Chan stop` / `para` / `fica` | Cancels active manual movement or cancels explosion countdown | Current owner |
+| `Ai-Chan drop` / `solta` / `larga` / `release` | Forces Ai-Chan to immediately drop any held item or player | Current owner |
+| `Ai-Chan help` / `commands` / `ajuda` | Shows the local help text | Any player |
+| `Ai-Chan net` / `rede` | Prints network profiler stats to the local console | Any player (Local only) |
+| `Ai-Chan jump` / `pula` / `pule` | Makes Ai-Chan jump | Any player |
+| `Ai-Chan come` / `here` / `vem` / `aqui` | Calls Ai-Chan close to the owner | Current owner |
+| `Ai-Chan away` / `sai` / `longe` | Sends Ai-Chan away temporarily | Current owner |
+| `Ai-Chan dead` / `play dead` / `morta` / `deita` | Makes Ai-Chan play dead for about 6 seconds | Current owner |
+| `Ai-Chan small` / `pequena` / `mini` | Sets small size (0.5x) | Current owner |
+| `Ai-Chan big` / `grande` / `gigante` | Sets large size (1.8x) | Current owner |
+| `Ai-Chan normal` / `padrao` | Restores normal size (1.0x) | Current owner |
+| `Ai-Chan size 2.5` / `tamanho 2.5` | Sets a custom exact size | Current owner |
+| `Ai-Chan switch` / `pass` / `troca` / `leave` | Transfers Ai-Chan to another player | Current owner |
 
 > The mod matches keywords in sentences, so typing "become small aino" will still trigger the small size command (0.5x).
 > Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
 > Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
 > Why not just a keybind? Aside from there being so many commands, I thought it would be cool to hear commands from friends, since the game has a chat-reading system.
+> Supports English and Portuguese aliases
+> 
 
 ## Configuration
 
@@ -168,32 +174,46 @@ After launching the game once, open the in‑game ModMenu configuration UI to ad
 
 | Section | Option | Default | Range / description |
 |---|---|---:|---|
-| General | `GiveItemDistance` | `4.5` | Maximum distance to accept an item from a player's hand |
-| Movement | `Speed` | `3.5` | Ai-Chan movement speed; 1 to 10 |
-| Movement | `Auto Jump Stuck Delay` | `2.0` | Time spent stuck before attempting an automatic jump |
-| Movement | `Follow Range (Start)` | `2.2` | Distance at which she begins following |
-| Movement | `Stopping Distance (Stop)`| `2.0` | Distance at which she stops near the owner |
-| Interaction | `Max Carried Mass` | `3.0` | Maximum item mass Ai-Chan can carry; 0.5 to 20 |
+| Delivery | `CartApproachDistance` | `1.6` | Distance for Ai-Chan to approach the cart before stopping (0.5 to 4.0m) |
+| Delivery | `CartDropDistance` | `1.8` | Maximum distance (in meters) to throw/drop item into the cart (0.5 to 5.0m) |
+| Delivery | `ShopDropDistance` | `1.2` | Maximum distance (in meters) to drop item at the shop counter (0.5 to 4.0m) |
+| Delivery | `GiveItemDistance` | `4.5` | Maximum distance to accept an item from a player's hand (2 to 8m) |
+| Movement | `Speed` | `3.5` | Ai-Chan movement speed (1 to 10) |
+| Movement | `Carry Speed` | `3.5` | Movement speed while carrying an item or player (1 to 10) |
+| Movement | `Auto Jump Stuck Delay` | `1.0` | Time spent stuck before attempting an automatic jump (0.5 to 5s) |
+| Movement | `Follow Range (Start)` | `2.0` | Distance at which she begins following (0.5 to 10m) |
+| Movement | `Stopping Distance (Stop)`| `2.0` | Distance at which she stops near the owner (0.1 to 10m) |
+| Movement | `Min Jump Obstacle Height` | `1.0` | Minimum obstacle height to jump (0.35m to 2.5m). Allows smooth stair walking |
+| Movement | `Max Jump Obstacle Height` | `3.5` | Maximum obstacle height she will attempt to jump onto (1.5m to 8.0m) |
+| Interaction | `Max Carried Mass` | `3.0` | Maximum item mass Ai-Chan can carry (0.5 to 20) |
 | Interaction | `Inherit Pet Scale On Carry`| `false` | Carried items scale proportionally with the pet's size |
-| Physics | `Body Mass` | `1.5` | Ai-Chan physical mass; 0.2 to 20 |
-| Physics | `Knockdown Impact Resistance`| `2.0` | Minimum impact speed (m/s) required to knock Ai-Chan down |
-| Physics | `Stand Up Delay` | `2.0` | Delay before standing after a fall; 0 to 10 seconds |
-| Physics | `Angular Drag` | `0.5` | Rotational resistance while thrown; 0 to 10 |
-| Audio | `Volume` | `50` | Audio volume percentage; 0 to 100 |
-| Multiplayer | `Owner Switch Interval` | `3.0` | Automatic owner-switch interval in minutes; `0` disables it |
+| Commands | `Enable Explode Command` | `false` | Enables owner chat commands to detonate the pet |
+| Explosion | `Player Damage` | `10` | Damage dealt to players within the explosion radius (0 to 200) |
+| Explosion | `Enemy Damage` | `50` | Damage dealt to monsters/enemies (0 to 500) |
+| Explosion | `Explosion Radius` | `1.2` | Size and radius of the explosion in meters (0.5 to 10.0m) |
+| Explosion | `Explosion Force Multp.` | `1.0` | Multiplier for physical impulse and body launch force (0.5 to 10.0) |
+| Physics | `Body Mass` | `1.5` | Ai-Chan physical mass (0.2 to 10) |
+| Physics | `Knockdown Impact Resistance`| `3.5` | Minimum impact speed (m/s) required to knock Ai-Chan down (0.5 to 10) |
+| Physics | `Stand Up Delay` | `2.0` | Delay before standing after a fall (0 to 10 seconds) |
+| Physics | `Angular Drag` | `0.5` | Rotational resistance while thrown (0 to 10) |
+| Audio | `Volume` | `50` | Audio volume percentage (0 to 100) |
+| Multiplayer | `Owner Switch Interval` | `3.0` | Automatic owner-switch interval in minutes (0 disables it) |
 | Controls | `Give Item Key` | `R` | Item/rescue interaction key |
 | Controls | `Pet Key` | `E` | Petting key |
 | Controls | `Switch Owner Key` | `F5` | Key to transfer the pet to the next player |
 | Logs | `Enable Debug Logs` | `true` | Enables network and debug logs in the console |
 | Logs | `Enable State Transition Logs`| `false` | Logs detailed pet state transitions |
 | Logs | `Enable NavMesh Transition Logs`| `false`| Logs when Ai-Chan enters or leaves the NavMesh |
+| Logs | `Enable Carry Logs` | `false` | Logs verbose delivery and jitter diagnostics (spams console) |
 | Performance | `Enable Ghost Probing` | `true` | Enables multi-ray pathfinding to avoid tables/walls smoothly |
-| Performance | `Ghost Probe Distance` | `2.5` | Distance ghost probes look ahead to avoid walls |
-| Performance | `Ghost Probe Update Interval`| `0.1` | How often pathfinding is calculated (lower = faster reaction) |
-| Performance | `Ghost Probe Rays` | `7` | Number of projection rays. Higher = Smarter, Lower = Better performance |
-| Performance | `Enable Debug Rays` | `false` | Visualizes the ghost simulation paths in-game (Only the host sees it, since all the pet's navigation calculations are handled by the host.) |
+| Performance | `Ghost Probe Distance` | `2.5` | Distance ghost probes look ahead to avoid walls (1.0 to 5.0m) |
+| Performance | `Ghost Probe Update Interval`| `0.1` | How often pathfinding is calculated in seconds (0.02 to 0.5s) |
+| Performance | `Ghost Probe Rays` | `7` | Number of projection rays (1 to 12) |
+| Performance | `Enable Debug Rays` | `false` | Visualizes the ghost simulation paths in-game (Host only) |
 | Performance | `Debug Rays Fade Time` | `0.25` | How long debug rays remain visible on screen |
 | Performance | `Debug Breadcrumbs Fade Time`| `0.15` | How long breadcrumb trail rays remain visible |
+
+> I'm from Brazil, so don't be surprised if I forgot to translate some of the logs into English, oops :3
 
 ## Multiplayer networking
 
@@ -236,6 +256,7 @@ In addition to continuous state, Steam networking sends dedicated packets for:
 - picking up and dropping an item or player (including scale inheritance);
 - petting;
 - manual owner switching.
+- explosion trigger and countdown;
 
 Item delivery, player carrying, and owner-switch events are sent to the host. The host resolves the referenced objects through their `PhotonView`, executes the authoritative action, and sends the necessary visual results to the other players.
 
@@ -312,21 +333,22 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 
 | File | Lines (Include blank lines and comments) | Responsibility |
 |---|---:|---|
-| `AiChanAudio.cs` | 143 | Controls Ai-Chan's audio system: loading bark clips, spatial audio playback, volume, distance falloff, pitch variation, and bark cooldowns. |
+| `AiChanAudio.cs` | 151 | Controls Ai-Chan's audio system: loading bark clips, spatial audio playback, volume, distance falloff, pitch variation, and bark cooldowns. |
 | `ElsaPetMod.csproj` | 114 | The .NET project file. Defines the target framework and references for the game DLLs, Unity, Photon, BepInEx, Harmony, Steam networking, and mod dependencies. |
 | `NetworkInterpolation.cs` | 160 | Controls network interpolation for remote clients, including snapshot frequency, smooth position/rotation corrections, teleport snapping for large desyncs, and reduced update frequency while the pet is idle. |
-| `PetCompanionController.Chat.cs` | 238 | Implements chat commands such as `come`, `here`, `away`, `jump`, `dead`, `small`, `big`, `normal`, `switch`, and custom `size` values. Also provides local help and network-stat commands. |
-| `PetCompanionController.cs` | 479 | The main Ai-Chan controller. Handles pet states, initialization, owner tracking, animations, physics, grabbing/releasing, recovery, collision knockdowns, scaling, and the primary AI update loop. |
-| `PetCompanionController.Delivery.cs` | 1026 | Controls item delivery and downed-player pick up. Finds carts and extractors, validates items, picks up and carries targets, handles drops, manages shop delivery behavior, and synchronizes carried objects. |
+| `PetCompanionController.Chat.cs` | 359 | Implements chat commands such as `come`, `here`, `away`, `jump`, `dead`, `small`, `big`, `normal`, `switch`, and custom `size` values. Also provides local help and network-stat commands. |
+| `PetCompanionController.cs` | 578 | The main Ai-Chan controller. Handles pet states, initialization, owner tracking, animations, physics, grabbing/releasing, recovery, collision knockdowns, scaling, and the primary AI update loop. |
+| `PetCompanionController.Delivery.cs` | 1421 | Controls item delivery and downed-player pick up. Finds carts and extractors, validates items, picks up and carries targets, handles drops, manages shop delivery behavior, and synchronizes carried objects. |
+| `PetCompanionController.Explosion.cs` | 350 | Implements explosion mechanics: countdown coroutine, 3D billboard text tag, accelerating spatial audio beeps with dynamic pitch, game native particle explosion spawning, player/enemy damage application, physical impulse forces, and `PetExplodePacket` network synchronization. |
 | `PetCompanionController.Interactions.cs` | 238 | Controls pet interactions: petting, heart particles, petting animation, sounds and stun behavior. |
-| `PetCompanionController.Navigation.cs` | 1629 | Implements movement and pathfinding. Includes NavMesh following, owner switching, automatic jumps, Ghost Probing, native door opening, anti-stuck systems, breadcrumbs, manual movement fallback, floor detection, and emergency teleports. |
+| `PetCompanionController.Navigation.cs` | 1917 | Implements movement and pathfinding. Includes NavMesh following, owner switching, automatic jumps, Ghost Probing, native door opening, anti-stuck systems, breadcrumbs, manual movement fallback, floor detection, and emergency teleports. |
 | `PetInteraction.cs` | 261 | Reads local player input and converts it into pet interactions: petting, giving an item, carrying a downed player, and manually switching the owner. |
-| `PetNetworkBridge.cs` | 291 | Bridges the pet controller with Steam/Photon networking. Sends and receives state snapshots, spawn events, petting, deliveries, player rescue requests, owner switching, and carry synchronization. |
+| `PetNetworkBridge.cs` | 307 | Bridges the pet controller with Steam/Photon networking. Sends and receives state snapshots, spawn events, petting, deliveries, player rescue requests, owner switching, and carry synchronization. |
 | `PetNetworkProfiler.cs` | 82 | Tracks mod network usage: sent/received bytes, current upload/download rate, total traffic, uptime, and console statistics. |
-| `PetSettings.cs` | 251 | Registers all BepInEx configuration entries: movement, mass, interaction distance, physics, audio, controls, owner switching, Ghost Probing, debug logs, rays, and breadcrumbs. |
-| `PetSpawner.cs` | 698 | Creates and initializes Ai-Chan in levels and shops. Configures the PhotonView, Rigidbody, NavMeshAgent, colliders, Aino visual, name tag, heart particles, player collision filtering, and minimap icon. |
-| `PetSteamPackets.cs` | 161 | Defines the custom Steam networking packets used by the mod: state updates, spawning, item delivery, petting, player carrying, carry synchronization, owner switching, and synchronization requests. |
-| `Plugin.cs` | 71 | The mod entry point. Registers the BepInEx plugin, initializes settings, registers Steam packets, applies Harmony patches, and starts the network profiler. |
+| `PetSettings.cs` | 353 | Registers all BepInEx configuration entries: movement, mass, interaction distance, physics, audio, controls, owner switching, Ghost Probing, debug logs, rays, and breadcrumbs. |
+| `PetSpawner.cs` | 705 | Creates and initializes Ai-Chan in levels and shops. Configures the PhotonView, Rigidbody, NavMeshAgent, colliders, Aino visual, name tag, heart particles, player collision filtering, and minimap icon. |
+| `PetSteamPackets.cs` | 178 | Defines the custom Steam networking packets used by the mod: state updates, spawning, item delivery, petting, player carrying, carry synchronization, owner switching, and synchronization requests. |
+| `Plugin.cs` | 72 | The mod entry point. Registers the BepInEx plugin, initializes settings, registers Steam packets, applies Harmony patches, and starts the network profiler. |
 
 ## What about the other models in GenshinImpactOverhaul_REPO?
 
