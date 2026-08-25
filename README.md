@@ -17,6 +17,9 @@ Below, a test of how the readme will look like:
 
 ## Overview
 
+First of all, if you are seeing this mod on Thunderstore or any other modding platform, it means I decided the mod is good enough and not something broken that doesn't work properly.
+The initial idea and production for this mod began on August 6, 2026, at the end of my vacation and after I had finished creating my first simple mod to fix another mod (I didn't imagine it would be so difficult... I don't plan on making another mod anytime soon.)
+
 Ai-Chan Companion adds one pet companion to the game. She spawns automatically at the start of each level and in the shop, appears near a player, and chooses an owner to follow. 
 
 She uses advanced NavMesh navigation and Ghost Probing to move intelligently around obstacles, pathfinds toward her owner, can open doors natively, and includes recovery systems to prevent her from getting stuck. Players can grab and throw her as a physics object; after landing, she recovers and resumes following her owner.
@@ -173,7 +176,8 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 
 After launching the game once, open the in‑game ModMenu configuration UI to adjust Ai‑Chan settings.
 
-For now, only the host apparently defines the configuration for everyone; I'll change that to allow some settings for the client as well, such as Follow Range, Stopping Distance, Volume...
+For now, only the host apparently defines the configuration for everyone; I'll change that to allow some settings for the client as well, such as Follow Range, Stopping Distance, Audio...but there is no expectation for me to do it for now.
+Don't be afraid to change these movement, interaction, and physics settings, as they may not be balanced or fit your play style.
 
 | Section | Option | Default | Range / description |
 |---|---|---:|---|
