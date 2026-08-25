@@ -1,5 +1,5 @@
 # CompanionR.E.P.O
-A mod for the game R.E.P.O that adds an NPC/PET as Aino from genshin impact that helps the player, still under development. (just doing some final tests to release it)
+A mod for the game R.E.P.O that adds an NPC/PET as Aino from Genshin Impact that helps the player, still under development. (just doing some final tests to release it)
 
 
 [![Here a video of it](https://img.youtube.com/vi/xXLUuVCpgSU/0.jpg)](https://youtu.be/xXLUuVCpgSU)
@@ -60,14 +60,14 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 
 ### Multiplayer
 
-Multiplayer should already work for now...at least for what I tested with my friend, which I'm grateful for spending hours with me compiling, open the game, test, fail, fix, compile,open...etc <3 
+Multiplayer should already work for now...at least for what I tested with my friend, which I'm grateful for spending hours with me compiling, opening the game, testing, failing, fixing, compiling, opening, etc. <3
 
 For a consistent multiplayer experience, every player in the lobby should use:
 
-- Ai-Chan Companion on the same version;
-- GenshinImpactOverhaul_REPO;
-- REPO_SteamNetworking_Lib;
-- MenuLib;
+- Ai-Chan Companion on the same version
+- GenshinImpactOverhaul_REPO
+- REPO_SteamNetworking_Lib
+- MenuLib
 
 The mod requires strict compatibility with the Steam networking library. Using different versions can prevent loading or correct synchronization.
 
@@ -84,7 +84,7 @@ The mod requires strict compatibility with the Steam networking library. Using d
 
 ### Movement and recovery
 
-Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the new Ghost Probing system, she anticipates walls and obstacles to navigate. She can also  open closed doors(or at least try) in her path. 
+Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the new Ghost Probing system, she anticipates walls and obstacles to navigate. She can also open closed doors (or at least try) in her path. 
 
 If she encounters an obstacle or a partial path, she may perform an automatic jump. If she remains far above her owner for several seconds or falls into the void, the safety system teleports her to a navigable position near the owner.
 
@@ -93,7 +93,7 @@ She can be grabbed and thrown. While held or falling, her navigation is paused. 
 ## Pathfinding & Movement Overhaul (The "Jitter" Fix)
 After extensive debugging, a critical issue causing severe jittering, stuttering, and velocity drops (especially when carrying the player/items to the cart) has been completely resolved (10+ hours on it...). 
 
-**The Core Problems(Suspects):**
+**The Core Problems (Suspects):**
 1. **NavMeshObstacle Carving Conflict:** The `PhysGrabCart` actively carves a dynamic hole in the NavMesh. The Unity `NavMeshAgent`'s native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh.
 2. **Procedural Floor Interpolation Tug-of-War:** In procedural levels (like Factories/Mines), the floor has micro-seams. The `NavMeshAgent` forced the position to snap to these seams, while the `Rigidbody` interpolation tried to smooth it out. This created a 60-frames-per-second mathematical conflict, resulting in visual "500ms ping" stutters.
 3. **Ragdoll Drag:** When carrying a player, only the main `PlayerTumble` colliders were disabled. The rest of the player's body (arms/legs) remained solid, dragging on the floor and applying a massive -15m/s physics drag against the pet.
@@ -107,7 +107,7 @@ After extensive debugging, a critical issue causing severe jittering, stuttering
 
 ### Items and rescue
 
-1. Hold a physics item (She will not pick up carts, monters, doors, etc [for now she does not pick up dead players, maybe in the future she will]).
+1. Hold a physics item (She will not pick up carts, monsters, doors, or dead players [dead player carrying may be supported in the future]).
 2. Stand near Ai-Chan.
 3. Press the give-item key, `R` by default.
 4. She picks up the object and attempts to bring it to the available cart/delivery destination.
@@ -133,7 +133,7 @@ When a valid extraction point is available, Ai-Chan approaches it and drops the 
 
 | Action | Default key | Requirements |
 |---|---:|---|
-| Pet Ai-Chan | `E` | Be within 3 m, look at Ai-Chan, has an 1 second cooldown |
+| Pet Ai-Chan | `E` | Be within 3 m, look at Ai-Chan, has a 1-second cooldown |
 | Give item / carry player | `R` | Be near the pet; the item or player must be valid |
 | Switch owner | `F5` | Only the current owner can use it |
 
@@ -146,7 +146,7 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 | Command example | Effect | Who can use it |
 |---|---|---|
 | `Ai-Chan help` / `commands` | Shows the local help text | Any player |
-| `Ai-Chan net` / `rede` | Prints network profiler stats to the local console | Any player (Local only) |
+| `Ai-Chan net`| Prints network profiler stats to the local console | Any player (Local only) |
 | `Ai-Chan jump` | Makes Ai-Chan jump | Any player |
 | `Ai-Chan come` or `here` | Calls Ai-Chan close to the owner | Current owner |
 | `Ai-Chan away` | Sends Ai-Chan away temporarily | Current owner |
@@ -157,7 +157,7 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 | `Ai-Chan size 2.5`/`Ai-Chan size 0.1` etc... | Sets a custom exact size (e.g., 2.5x) | Current owner |
 | `Ai-Chan switch` / `pass` | Transfers Ai-Chan to another player | Current owner |
 
-> The mod only identifies keywords, so "become small aino" will still be recognized as "Sets small size (0.5x)".
+> The mod matches keywords in sentences, so typing "become small aino" will still trigger the small size command (0.5x).
 > Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
 > Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
 > Why not just a keybind? Aside from there being so many commands, I thought it would be cool to hear commands from friends, since the game has a chat-reading system.
@@ -172,7 +172,7 @@ After launching the game once, open the in‑game ModMenu configuration UI to ad
 | Movement | `Speed` | `3.5` | Ai-Chan movement speed; 1 to 10 |
 | Movement | `Auto Jump Stuck Delay` | `2.0` | Time spent stuck before attempting an automatic jump |
 | Movement | `Follow Range (Start)` | `2.2` | Distance at which she begins following |
-| Movement | `Stopping Distance(Stop)`| `2.0` | Distance at which she stops near the owner |
+| Movement | `Stopping Distance (Stop)`| `2.0` | Distance at which she stops near the owner |
 | Interaction | `Max Carried Mass` | `3.0` | Maximum item mass Ai-Chan can carry; 0.5 to 20 |
 | Interaction | `Inherit Pet Scale On Carry`| `false` | Carried items scale proportionally with the pet's size |
 | Physics | `Body Mass` | `1.5` | Ai-Chan physical mass; 0.2 to 20 |
@@ -283,7 +283,7 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 - **MenuLib (nickklmao):** in‑game configuration UI library.
 - **REPO:** base game, physics, navigation, Photon, and interaction systems.
 
-##Thanks
+## Thanks
 
 A big thank you to GoblinKingShmee. I asked him via Discord, and he gave me permission to use his mod to load the model it adds to the game into my own mod.
 
@@ -296,21 +296,21 @@ A big thank you to GoblinKingShmee. I asked him via Discord, and he gave me perm
 
 This mod was developed with the assistance of AI tools for code generation and refactoring. Since I don't know C#, I heavily relied on AI to write the code while I tested, provided feedback, compiled, and rewrote parts the way I wanted. All gameplay logic, system design, implementation requirements, test plans, and iterative feedback were authored and directed by me through multiple review cycles (I gained over 50 hours of playtime just testing the mod -_-)
 
-AI was used as a productivity aid, not as the designer of the mod's behavior or features. Most of the time, the AI would break a mechanic that was working perfectly (like grab, animations, or pathfinding/following) and couldn't fix it. When this happened, I was forced to roll back to an earlier save, losing progress. Sometimes, realizing my approach wasn't going to work, I had to start over from scratch again.
+AI was used as a productivity aid, not as the designer of the mod's behavior or features. Most of the time, the AI would break a mechanic that was working perfectly (like grab, animations, or pathfinding/following) and couldn't fix it. When this happened, I was forced to roll back to an earlier save, losing progress. Sometimes, realizing my approach wasn't going to work, I had to start over from scratch.
 
 For example, I was suggested to use an in-game item as a grab mechanism for Ai-Chan by inserting the item invisibly inside the model. It kind of worked—or so I thought—but it was never going to truly work because of collision issues. If the item broke, it disappeared along with its value, mechanics, and the model of Ai-Chan. It just didn't work! :)
 
 A lot was fixed through this back-and-forth process. Many hours were spent on this mod, which I created with a lot of care~
 
-## Known issues
+## Known issues? Not sure because I fixed a lot of things...
 
-- Sometimes she won't find the path to the cart if it is too far away of if the mat has dead-ends on the way back.
-- Her pathfinding is kinda experimental, so she might get lost if no one is in her base vision.
+- Sometimes she won't find the path to the cart if it is too far away or if the map has dead-ends on the way back.
+- Her pathfinding is kinda experimental, so she might get lost if no one is in her direct line of sight.
 - When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
 
 ## Mod architecture (Just for curiosity)
 
-| File | Lines(Include blank lines and comments) | Responsibility |
+| File | Lines (Include blank lines and comments) | Responsibility |
 |---|---:|---|
 | `AiChanAudio.cs` | 143 | Controls Ai-Chan's audio system: loading bark clips, spatial audio playback, volume, distance falloff, pitch variation, and bark cooldowns. |
 | `ElsaPetMod.csproj` | 114 | The .NET project file. Defines the target framework and references for the game DLLs, Unity, Photon, BepInEx, Harmony, Steam networking, and mod dependencies. |
@@ -328,7 +328,7 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 | `PetSteamPackets.cs` | 161 | Defines the custom Steam networking packets used by the mod: state updates, spawning, item delivery, petting, player carrying, carry synchronization, owner switching, and synchronization requests. |
 | `Plugin.cs` | 71 | The mod entry point. Registers the BepInEx plugin, initializes settings, registers Steam packets, applies Harmony patches, and starts the network profiler. |
 
-## What about the others models in GenshinImpactOverhaul_REPO?
+## What about the other models in GenshinImpactOverhaul_REPO?
 
 ya..I briefly tested making a "general" version; I might even make it available later (without posting it because it's kind of terrible). Some models have specific peculiarities while others are easier, so I focused only on Aino, which is what initially motivated me to make this mod. But in theory, it would be possible to extend this in the future... or maybe load custom models. I don't know how imports work... hence the dependency on the GenshinImpactOverhaul_REPO mod.
 
