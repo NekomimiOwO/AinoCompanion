@@ -26,8 +26,8 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 ## Features
 
 - Automatic Ai-Chan spawn in levels and in the shop.
-- Floating **Ai-Chan** name tag above the character.
-- **Minimap Tracker:** Ai-Chan appears as a distinct pink/magenta circle marker on the dirt finder minimap.
+- Floating Ai-Chan name tag above the character.
+- Minimap Tracker: Ai-Chan appears as a distinct pink/magenta circle marker on the dirt finder minimap.
 - Automatic owner following with configurable distance.
 - Automatic owner switching in multiplayer.
 - Manual owner switching by the current owner.
@@ -38,11 +38,12 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 - No physical collision with players, preventing unwanted blocking and pushing.
 - Advanced NavMesh movement with Ghost Probing to avoid tables/walls, automatic jumps when stuck, try door opening, and an emergency safety teleport when stuck.
 - Accepts objects held by players based on configurable mass limits.
-- **Carried Item Scaling:** Items can optionally inherit her scale while she carries them (host only config).
+- Carried Item Scaling(opcional): Items can optionally inherit her scale while she carries them (host only config).
 - Carries accepted items to the cart/delivery objective when a valid target is available. If two carts or more are present, she chooses the nearest; if no carts are present, she will go to the active extractor.
 - Can carry players in a tumble state.
 - Audio feedback for commands and interactions.
 - Network Profiler for tracking the mod steam data usage.
+- Explosion!!
 
 ## Installation
 
