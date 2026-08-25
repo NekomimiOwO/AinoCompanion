@@ -95,7 +95,7 @@ If she encounters an obstacle or a partial path, she may perform an automatic ju
 She can be grabbed and thrown. While held or falling, her navigation is paused. When she touches the ground — or after the recovery timeout — she stands up, finds the NavMesh again, and returns to the following state. Fast-moving heavy objects hitting her will also knock her down based on the configured impact resistance.
 
 ## Pathfinding & Movement Overhaul (The "Jitter" Fix)
-After extensive debugging, a critical issue causing severe jittering, stuttering, and velocity drops (especially when carrying the player/items to the cart) has been completely resolved (10+ hours on it...). 
+After extensive debugging, a critical issue causing severe jittering, stuttering, and velocity drops (especially when carrying the player/items to the cart) has been completely resolved on August 24, 2026. (10+ hours just on it...). 
 
 **The Core Problems (Suspects):**
 1. **NavMeshObstacle Carving Conflict:** The `PhysGrabCart` actively carves a dynamic hole in the NavMesh. The Unity `NavMeshAgent`'s native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh.
