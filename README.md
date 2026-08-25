@@ -167,11 +167,12 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 > Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
 > Why not just a keybind? Aside from there being so many commands, I thought it would be cool to hear commands from friends, since the game has a chat-reading system.
 > Supports English and Portuguese aliases
-> 
 
 ## Configuration
 
 After launching the game once, open the in‑game ModMenu configuration UI to adjust Ai‑Chan settings.
+
+For now, only the host apparently defines the configuration for everyone; I'll change that to allow some settings for the client as well, such as Follow Range, Stopping Distance, Volume...
 
 | Section | Option | Default | Range / description |
 |---|---|---:|---|
