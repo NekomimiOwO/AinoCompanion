@@ -61,7 +61,7 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 
 ### Multiplayer
 
-Multiplayer should already work for now...at least for what I tested with my friend, which I'm grateful for spending hours with me compiling, opening the game, testing, failing, fixing, compiling, opening, etc. <3
+Multiplayer should already work for now...at least for what I tested with my friend (Woolfy), which I'm grateful for spending hours with me compiling, opening the game, testing, failing, fixing, compiling, opening, etc. <3
 
 For a consistent multiplayer experience, every player in the lobby should use:
 
