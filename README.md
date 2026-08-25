@@ -90,6 +90,21 @@ If she encounters an obstacle or a partial path, she may perform an automatic ju
 
 She can be grabbed and thrown. While held or falling, her navigation is paused. When she touches the ground — or after the recovery timeout — she stands up, finds the NavMesh again, and returns to the following state. Fast-moving heavy objects hitting her will also knock her down based on the configured impact resistance.
 
+## Pathfinding & Movement Overhaul (The "Jitter" Fix)
+After extensive debugging, a critical issue causing severe jittering, stuttering, and velocity drops (especially when carrying the player/items to the cart) has been completely resolved (10+ hours on it...). 
+
+**The Core Problems(Suspects):**
+1. **NavMeshObstacle Carving Conflict:** The `PhysGrabCart` actively carves a dynamic hole in the NavMesh. The Unity `NavMeshAgent`'s native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh.
+2. **Procedural Floor Interpolation Tug-of-War:** In procedural levels (like Factories/Mines), the floor has micro-seams. The `NavMeshAgent` forced the position to snap to these seams, while the `Rigidbody` interpolation tried to smooth it out. This created a 60-frames-per-second mathematical conflict, resulting in visual "500ms ping" stutters.
+3. **Ragdoll Drag:** When carrying a player, only the main `PlayerTumble` colliders were disabled. The rest of the player's body (arms/legs) remained solid, dragging on the floor and applying a massive -15m/s physics drag against the pet.
+4. **Update vs LateUpdate Desync:** Calculating carrying positions in `Update` while the camera renders in `LateUpdate` created a 1-frame visual desynchronization.
+
+**The Solution (The "Decoupled Agent" Architecture):**
+* **Brain/Body Decoupling:** Disabled `agent.updatePosition` and `agent.updateRotation`. The `NavMeshAgent` (the brain) now silently calculates the perfect mathematical path, while the physical 3D model (the body) uses a smooth `Vector3.Lerp` to follow it. This entirely absorbs any procedural floor bumps.
+* **Native Evasion Disabled:** Disabled `autoBraking` and set `ObstacleAvoidanceType.NoObstacleAvoidance` so the pet confidently maintains a constant 3.5m/s speed without fearing the cart's carved hole.
+* **Total Ragdoll Suppression:** Implemented a root-level collider scan that temporarily ignores collision for *every single limb* of the carried player, eliminating all physics friction.
+* **Unified LateUpdate Kinematics:** All physical transportation of items and players is now strictly enforced inside `LateUpdate` with forced `isKinematic = true`, ensuring 1:1 frame-perfect synchronization with the player's camera.
+
 ### Items and rescue
 
 1. Hold a physics item (She will not pick up carts, monters, doors, etc [for now she does not pick up dead players, maybe in the future she will]).
