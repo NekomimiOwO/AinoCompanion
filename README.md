@@ -310,6 +310,8 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 ## Thanks
 
 A big thank you to GoblinKingShmee. I asked him via Discord, and he gave me permission to use his mod to load the model it adds to the game into my own mod.
+Again, a huge thank you to my friend(Woolfy) for spending countless hours with me compiling, opening the game, testing, failing, fixing, and testing again. implementing multiplayer simply wouldn't have been possible without him <3
+(So, be grateful to him too :<)
 
 
 ## Legal / Asset notice
@@ -355,7 +357,7 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 
 ## What about the other models in GenshinImpactOverhaul_REPO?
 
-ya..I briefly tested making a "general" version; I might even make it available later (without posting it because it's kind of terrible). Some models have specific peculiarities while others are easier, so I focused only on Aino, which is what initially motivated me to make this mod. But in theory, it would be possible to extend this in the future... or maybe load custom models. I don't know how imports work... hence the dependency on the GenshinImpactOverhaul_REPO mod.
+ya..I briefly tested making a "general" version; I might even make it available later (without posting it because it's kind of terrible and it's way behind compared to what this mod does). Some models have specific peculiarities while others are easier, so I focused only on Aino, which is what initially motivated me to make this mod. But in theory, it would be possible to extend this in the future... or maybe load custom models without dependency. I don't know how imports work... hence the dependency on the GenshinImpactOverhaul_REPO mod.
 
 Don't expect many updates, since I'm busy with a lot of things... nya~
 
