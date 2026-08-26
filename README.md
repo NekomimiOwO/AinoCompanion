@@ -19,6 +19,7 @@ Below, a test of how the readme will look like:
 
 First of all, if you are seeing this mod on Thunderstore or any other modding platform, it means I decided the mod is good enough and not something broken that doesn't work properly.
 The initial idea and production for this mod began on August 6, 2026, at the end of my vacation and after I had finished creating my first simple mod to fix another mod (I didn't imagine it would be so difficult... I don't plan on making another mod anytime soon.)
+Since there have been many changes to the mod and each major change requires testing to be done from scratch, some parts of this readme might be outdated, though most of it should still be accurate.
 
 Ai-Chan Companion adds one pet companion to the game. She spawns automatically at the start of each level and in the shop, appears near a player, and chooses an owner to follow. 
 
@@ -46,7 +47,7 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 - Can carry players in a tumble state.
 - Audio feedback for commands and interactions.
 - Network Profiler for tracking the mod steam data usage.
-- Explosion!!
+- Explosion!! :3
 
 ## Installation
 
@@ -337,8 +338,9 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 - Sometimes she won't find the path to the cart if it is too far away or if the map has dead-ends on the way back.
 - Her pathfinding is kinda experimental, so she might get lost if no one is in her direct line of sight.
 - When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
+- For the multiplayer client, its rotation might appear jittery or stuck.
 
-## Mod architecture (Just for curiosity)
+## Mod architecture (Just for curiosity, line counts might be outdated)
 
 | File | Lines (Include blank lines and comments) | Responsibility |
 |---|---:|---|
