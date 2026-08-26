@@ -9,7 +9,7 @@ A video of an older version of the mod:
 
 # To fix:
 
-- Incosistency in the readme on "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" the mod is sending every 0.02 seconds, up to 50 updates per second.
+- Incosistency in the readme on "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" the mod is sending every 0.02 seconds, up to 50 updates per second, I forgot to change back.
 - evaluate reducing the network transmission rate of the mod from 50 to 20 or 30.
 - Fix rotation on multiplayer for the client (priority)
 - Fix the cart not pushing her
