@@ -12,6 +12,7 @@ A video of an older version of the mod:
 - Update readme from "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" to "the host sends a snapshot every 0.02 seconds, up to 50 updates per second"
 - Fix rotation on multiplayer for the client
 - Fix the cart not pushing her
+- She sometimes goes inside the store tables.
 
 
 Below, a test of how the readme will look like:
