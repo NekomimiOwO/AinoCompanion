@@ -14,6 +14,7 @@ A video of an older version of the mod:
 - Fix the cart not pushing her
 - She sometimes goes inside the store tables.
 - Add debug rays to the jump
+- Add debug rays for navmesh navigation
 
 
 Below, a test of how the readme will look like:
