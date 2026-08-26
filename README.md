@@ -6,6 +6,13 @@ https://thunderstore.io/c/repo/p/MarceloOwO/AiChanCompanion/
 [![Here a video of it](https://img.youtube.com/vi/xXLUuVCpgSU/0.jpg)](https://youtu.be/xXLUuVCpgSU)
 
 
+# To fix:
+
+- Update readme from "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" to "the host sends a snapshot every 0.02 seconds, up to 50 updates per second"
+- Fix rotation on multiplayer for the client
+- Fix the cart not pushing her
+
+
 Below, a test of how the readme will look like:
 
 # Ai-Chan Companion
