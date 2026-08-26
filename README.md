@@ -15,6 +15,7 @@ A video of an older version of the mod:
 - She sometimes goes inside the store tables.
 - Add debug rays to the jump
 - Add debug rays for navmesh navigation
+- explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).
 
 
 Below, a test of how the readme will look like:
