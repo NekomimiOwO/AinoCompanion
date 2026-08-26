@@ -1,4 +1,3 @@
-# CompanionR.E.P.O
 A mod for the game R.E.P.O that adds an NPC/PET as Aino from Genshin Impact that helps the player, still under development. 
 
 https://thunderstore.io/c/repo/p/MarceloOwO/AiChanCompanion/
