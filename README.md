@@ -2,7 +2,7 @@ A mod for the game R.E.P.O that adds an NPC/PET as Aino from Genshin Impact that
 
 https://thunderstore.io/c/repo/p/MarceloOwO/AiChanCompanion/
 
-
+A video of an older version of the mod:
 [![Here a video of it](https://img.youtube.com/vi/xXLUuVCpgSU/0.jpg)](https://youtu.be/xXLUuVCpgSU)
 
 
