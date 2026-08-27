@@ -9,16 +9,16 @@ A video of an older version of the mod:
 
 # To fix:
 
-- Incosistency in the readme on "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" the mod is sending every 0.02 seconds, up to 50 updates per second, I forgot to change back.
-- evaluate reducing the network transmission rate of the mod from 50 to 20 or 30.
+- <del>Incosistency in the readme on "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" the mod is sending every 0.02 seconds, up to 50 updates per second, I forgot to change back.</del>
+- <del>evaluate reducing the network transmission rate of the mod from 50 to 20 or 30.</del>
 - Fix rotation on multiplayer for the client (priority)
-- Fix the cart not pushing her
+- <del>Fix the cart not pushing her</del>
 - She sometimes goes inside the store tables.
-- Add debug rays to the jump
-- Add debug rays for navmesh navigation
-- explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).
+-<del> Add debug rays to the jump</del>
+-<del> Add debug rays for navmesh navigation</del>
+- <del>explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).</del>
 - rewrite and revise the readme to make it seem less artificial.
-
+- delete "(like Factories/Mines)" from README
 
 Below, a test of how the readme will look like:
 
