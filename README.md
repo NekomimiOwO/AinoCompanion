@@ -21,6 +21,7 @@ A video of an older version of the mod:
 - Fix rotation on multiplayer for the client (priority)
 - Investigate and fix the owner switch key
 - The go command is probably using the master instead of the owner
+- Remove: "NavMeshObstacle Carving Conflict: The PhysGrabCart actively carves a dynamic hole in the NavMesh. The Unity NavMeshAgent's native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh." from the readme, since she walks normally near the cart—even generating NavMesh paths through it.
 
 Below, a test of how the readme will look like:
 
