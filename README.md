@@ -11,14 +11,16 @@ A video of an older version of the mod:
 
 - <del>Incosistency in the readme on "the host sends a snapshot every 0.05 seconds, up to 20 updates per second" the mod is sending every 0.02 seconds, up to 50 updates per second, I forgot to change back.</del>
 - <del>evaluate reducing the network transmission rate of the mod from 50 to 20 or 30.</del>
-- Fix rotation on multiplayer for the client (priority)
 - <del>Fix the cart not pushing her</del>
-- She sometimes goes inside the store tables.
 - <del> Add debug rays to the jump</del>
 - <del> Add debug rays for navmesh navigation</del>
 - <del>explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).</del>
+- She sometimes goes inside the store tables.
 - rewrite and revise the readme to make it seem less artificial.
 - delete "(like Factories/Mines)" from README
+- Fix rotation on multiplayer for the client (priority)
+- Investigate and fix the owner switch key
+- The go command is probably using the master instead of the owner
 
 Below, a test of how the readme will look like:
 
