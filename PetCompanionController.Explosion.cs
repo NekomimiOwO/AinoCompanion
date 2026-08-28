@@ -70,8 +70,6 @@ namespace ElsaPetMod
         {
             if (state == PetState.Dead) return;
 
-            // A CURA DO "AINO STOP": 
-            // Se o delay for negativo (-1f), significa que a rede mandou CANCELAR a explosão.
             if (delay < 0f)
             {
                 CancelExplodeCountdown(true);
@@ -90,9 +88,6 @@ namespace ElsaPetMod
 
             if (delay == 0f)
             {
-                // A CURA DO PING-PONG DE PACOTES:
-                // Repassamos a variável 'fromNetwork' para o Explode(). 
-                // Antes o código chamava "Explode();", o que fazia o Client enviar a explosão de volta pro Host!
                 Explode(fromNetwork);
                 return;
             }
@@ -226,10 +221,8 @@ namespace ElsaPetMod
             float force = PetSettings.ExplosionForce != null ? PetSettings.ExplosionForce.Value : 4.0f;
             float radius = PetSettings.ExplosionRadius != null ? PetSettings.ExplosionRadius.Value : 1.2f;
 
-            // O visual da explosão e tremor de câmera ocorrem em todos os PCs
             SpawnNativeExplosion(radius, force);
 
-            // Só o host altera a física real da pet e o NavMesh.
             bool isPhysicsAuthority = !PhotonNetwork.InRoom || PhotonNetwork.OfflineMode || PhotonNetwork.IsMasterClient;
             if (!isPhysicsAuthority) return;
 

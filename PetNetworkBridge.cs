@@ -8,7 +8,7 @@ namespace ElsaPetMod
 {
     public sealed class PetNetworkBridge : MonoBehaviourPunCallbacks
     {
-        private const float RemoteMovingTimeout = 0.025f;
+        private const float RemoteMovingTimeout = 0.08f;
         private const float SnapDistance = 3.0f;
         private const float PositionThresholdSqr = 0.000025f;
 

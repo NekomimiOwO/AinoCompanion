@@ -9,7 +9,7 @@ namespace ElsaPetMod
         public static ConfigEntry<bool> EnableStateTransitionLogs;
         public static ConfigEntry<bool> EnableNavMeshLogs;
         public static ConfigEntry<bool> EnableCarryJitterLogs;
-
+        public static ConfigEntry<bool> EnableDoorOpening;
         public static ConfigEntry<float> CartApproachDistance;
         public static ConfigEntry<float> CartDropDistance;
         public static ConfigEntry<float> ShopDropDistance;
@@ -134,7 +134,7 @@ namespace ElsaPetMod
             "Min Jump Obstacle Height",
             0.75f,
             new ConfigDescription(
-                "Altura mínima (em metros) de um obstáculo para a Ai-Chan parar e pular. Valores como 0.75m a 0.85m fazem ela subir escadas andando suavemente sem tentar pular os degraus.",
+                "Minimum height(in meters) of an obstacle for Ai - Chan to stop and jump.Values ​​between 0.75m and 0.85m allow her to walk up stairs smoothly without attempting to jump over the steps.",
         new AcceptableValueRange<float>(0.35f, 2.5f)));
 
             MaxJumpObstacleHeight = config.Bind(
@@ -153,6 +153,12 @@ namespace ElsaPetMod
                 new ConfigDescription(
                     "Maximum item weight Ai-Chan can accept and carry.",
                     new AcceptableValueRange<float>(0.5f, 20f)));
+
+            EnableDoorOpening = config.Bind(
+                "Interaction",
+                "Enable Door Opening",
+                true,
+                new ConfigDescription("Permite que a Ai-Chan destrave e empurre as portas do mapa fisicamente."));
 
             ExplosionPlayerDamage = config.Bind(
                 "Explosion",

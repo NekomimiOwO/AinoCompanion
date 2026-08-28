@@ -51,7 +51,7 @@ namespace ElsaPetMod
             // 3. Encontra a NavMesh válida mais próxima do ponto
             if (!UnityEngine.AI.NavMesh.SamplePosition(targetPoint, out UnityEngine.AI.NavMeshHit navHit, 4.0f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                Plugin.Log.LogWarning("[Ai-Chan] Comando vai: área fora do mapa ou bloqueada.");
+                Plugin.Log.LogWarning("[Ai-Chan] Command go: area outside the map or blocked.");
                 return false;
             }
 
@@ -288,7 +288,6 @@ namespace ElsaPetMod
                                     System.Globalization.CultureInfo.InvariantCulture,
                                     out float parsedDelay))
                             {
-                                // Limite máximo travado em 30 segundos
                                 delay = Mathf.Clamp(parsedDelay, 1f, 30f);
                                 break;
                             }

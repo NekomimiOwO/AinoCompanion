@@ -21,7 +21,7 @@ namespace ElsaPetMod
 
         private void TickPetting()
         {
-            // ABORTO DE EMERGÊNCIA: Se a explosão ou dano mudou o estado dela, encerra o carinho silenciosamente!
+
             if (state != PetState.Petting) return;
 
             StopMoving();
@@ -29,7 +29,6 @@ namespace ElsaPetMod
             if (Time.time < petEndsAt)
                 return;
 
-            // Só devolve ao estado normal se ela sobreviveu ilesa aos 2.6 segundos de carinho
             if (state == PetState.Petting)
             {
                 state = stateBeforePetting == PetState.Dead || stateBeforePetting == PetState.Grabbed
@@ -223,8 +222,11 @@ namespace ElsaPetMod
                 myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             }
 
-            if (SnapToNavMesh())
-                state = PetState.FollowOwner;
+            // A CURA DO COMA (Stun Lock):
+            // Em vez de usar o SnapToNavMesh fraco (que falha se ela voar longe e cair fora da malha),
+            // usamos a função de resgate absoluto que varre até 5 metros e a coloca em mesas ou no chão de forma segura.
+            EnsureGroundedAndNavMesh();
+            state = PetState.FollowOwner;
         }
 
         public void MarkDead()

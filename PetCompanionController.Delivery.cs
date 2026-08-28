@@ -1140,7 +1140,7 @@ namespace ElsaPetMod
             try { DropItemAtFeet(); }
             catch (Exception exception)
             {
-                Plugin.Log.LogWarning("[Ai-Chan] Falha ao soltar item: " + exception.Message);
+                Plugin.Log.LogWarning("[Ai-Chan] Failed to drop item: " + exception.Message);
                 ClearCarryState();
             }
         }
@@ -1345,7 +1345,7 @@ namespace ElsaPetMod
                 // Dá um latido/som de confirmação
                 if (aiAudio != null) aiAudio.PlayBark();
 
-                Plugin.Log.LogInfo("[Ai-Chan] Item largado à força por comando do Dono!");
+                Plugin.Log.LogInfo("[Ai-Chan] Item forcibly dropped by the Owner's command!");
             }
         }
 

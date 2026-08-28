@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
-using System.Reflection; // A CURA DO ERRO: Permite o uso do FieldInfo
+using System.Reflection;
 using HarmonyLib;
 
 namespace ElsaPetMod
@@ -172,7 +172,6 @@ namespace ElsaPetMod
                 while (LevelGenerator.Instance == null || !LevelGenerator.Instance.Generated) yield return null;
             }
 
-            // SUBSTITUIR POR:
             EnsureGroundedAndNavMesh();
             CreateHoldPoint();
 
@@ -192,13 +191,10 @@ namespace ElsaPetMod
             if (switchIntervalMinutes > 0f) nextPlayerSwitchTime = Time.time + switchIntervalMinutes * 60f;
         }
 
-        // Memória para saber o exato momento em que o jogador pegou e soltou
-        private bool wasLocallyGrabbed;
-
         private void Update()
         {
             if (!initialized || state == PetState.Dead) return;
-            // ... (restante do código)
+
 
             UpdateDynamicSettings();
             LogStateTransitions();
@@ -213,7 +209,7 @@ namespace ElsaPetMod
                 }
                 else
                 {
-                    // A CURA DO VOO: Usa o baseOffset para memorizar a altura do chão físico real
+
                     float targetY = brainPosition.y + agent.baseOffset;
                     float smoothY = Mathf.Lerp(transform.position.y, targetY, Time.deltaTime * 15f);
                     transform.position = new Vector3(brainPosition.x, smoothY, brainPosition.z);
@@ -230,8 +226,7 @@ namespace ElsaPetMod
 
             if (PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode && !PhotonNetwork.IsMasterClient)
             {
-                // O Cliente agora é um Proxy Visual absoluto.
-                // Não ativamos a gravidade local pois o jogo proíbe levantar objetos sem Ownership.
+
                 if (agent != null && agent.enabled) agent.enabled = false;
 
                 if (myRigidbody != null && !myRigidbody.isKinematic)
@@ -247,8 +242,6 @@ namespace ElsaPetMod
             }
 
 
-
-            // Trava a física caso ela não esteja sendo segurada, atordoada ou pulando
             if (myRigidbody != null && !myRigidbody.isKinematic && state != PetState.Grabbed && state != PetState.Stunned && !isJumping && !waitingToStandUp)
             {
                 myRigidbody.isKinematic = true;
@@ -290,7 +283,6 @@ namespace ElsaPetMod
         {
             if (state != PetState.Grabbed)
             {
-                // SUBSTITUIR POR:
                 if (agent != null && agent.enabled)
                 {
                     if (agent.isOnNavMesh)
@@ -313,8 +305,7 @@ namespace ElsaPetMod
 
         private void HandleReleasedState()
         {
-            // A CURA DOS 5 SEGUNDOS: Acorda o Rigidbody e devolve a gravidade no Host!
-            // Isso impede que a pet flutue e dispare o timeout de emergência de 5s.
+
             if (!waitingToStandUp && !isStandingUp)
             {
                 if (myRigidbody != null && myRigidbody.isKinematic)
@@ -348,6 +339,10 @@ namespace ElsaPetMod
 
                 Quaternion uprightRot = Quaternion.LookRotation(flatForward.normalized, Vector3.up);
 
+                // A CURA DA RESSURREIÇÃO: Puxamos a amarração da NavMesh ANTES de travar a física.
+                // Assim o agente amarra as patas virtuais dela no chão absoluto da NavMesh.
+                EnsureGroundedAndNavMesh();
+
                 transform.rotation = uprightRot;
 
                 if (myRigidbody != null)
@@ -355,9 +350,8 @@ namespace ElsaPetMod
                     myRigidbody.velocity = Vector3.zero;
                     myRigidbody.angularVelocity = Vector3.zero;
                     myRigidbody.rotation = uprightRot;
+                    myRigidbody.isKinematic = true; // Trava o modo boneca de pano
                 }
-
-                EnsureGroundedAndNavMesh();
 
                 if (agent != null && agent.enabled)
                 {
@@ -383,18 +377,12 @@ namespace ElsaPetMod
 
             if (state == PetState.Grabbed || state == PetState.Dead || isJumping || collision.rigidbody == null) return;
             if (collision.gameObject.layer == LayerMask.NameToLayer("Player") || collision.gameObject.layer == LayerMask.NameToLayer("PlayerOnlyCollision")) return;
-            // Filtro para ignorar pequenos impactos / objetos muito leves
+
             if (collision.rigidbody.mass < 0.2f) return;
-            // Avalia APENAS a velocidade absoluta do objeto que colidiu com ela.
-            // Isso previne que a própria velocidade de movimento dela conte como força de impacto.
+
             float incomingSpeedSqr = collision.rigidbody.velocity.sqrMagnitude;
 
-            // --- AQUI: Puxa o valor da configuração (2.0 m/s padrão) elevado ao quadrado para checagem rápida ---
             float threshold = PetSettings.KnockdownSpeedThreshold != null ? PetSettings.KnockdownSpeedThreshold.Value : 2.0f;
-
-
-            // Só sofre tombo se o objeto estiver se movendo rápido (~2 m/s) EM DIREÇÃO A ELA
-            // Exemplo: um item jogado pelo jogador, ou caindo do teto
             if (incomingSpeedSqr > 4.0f)
                 if (incomingSpeedSqr > (threshold * threshold))
             {
@@ -413,6 +401,39 @@ namespace ElsaPetMod
             }
         }
 
+        private void OnCollisionStay(Collision collision)
+        {
+            // O Client não calcula física, ele só assiste o Host
+            if (PhotonNetwork.InRoom && !PhotonNetwork.IsMasterClient) return;
+
+            // Se ela já estiver morta, levantando, pulando ou sendo segurada, ignora
+            if (state == PetState.Grabbed || state == PetState.Dead || isJumping || IsRecovering) return;
+
+            if (collision.rigidbody == null) return;
+
+            // Ignora jogadores encostando nela
+            if (collision.gameObject.layer == LayerMask.NameToLayer("Player") ||
+                collision.gameObject.layer == LayerMask.NameToLayer("PlayerOnlyCollision")) return;
+
+            // A CURA DO CARRINHO: Se o carrinho (ou um objeto pesado) estiver prensando ela
+            if (collision.gameObject.GetComponentInParent<PhysGrabCart>() != null || collision.rigidbody.mass >= 3.0f)
+            {
+                if (agent != null && agent.enabled && agent.isOnNavMesh)
+                {
+                    // Calcula a direção contrária de onde o carrinho está batendo
+                    Vector3 pushDir = transform.position - collision.transform.position;
+                    pushDir.y = 0f;
+
+                    if (pushDir.sqrMagnitude > 0.001f)
+                    {
+                        // O agent.Move empurra ela suavemente pela malha sem quebrar o pathfinding!
+                        // Ela vai deslizar pro lado como um sabonete molhado.
+                        agent.Move(pushDir.normalized * (Time.deltaTime * 4.5f));
+                    }
+                }
+            }
+        }
+
         private void UpdateDynamicSettings()
         {
             if (myRigidbody != null)
@@ -425,7 +446,6 @@ namespace ElsaPetMod
             }
             if (agent != null)
             {
-                // Alterna entre a velocidade de transporte e a velocidade padrão
                 float targetSpeed = (state == PetState.CarryItemToCart)
                     ? (PetSettings.CarrySpeed != null ? PetSettings.CarrySpeed.Value : 4.0f)
                     : (PetSettings.Speed != null ? PetSettings.Speed.Value : 3.5f);
@@ -517,8 +537,6 @@ namespace ElsaPetMod
             }
             else if (carriedPlayerAvatar != null)
             {
-                // A CURA DO PING 500: O cálculo é feito no milissegundo final da pipeline de renderização,
-                // impossibilitando que a Unity mude o modelo de lugar antes da sua câmera!
                 Vector3 carryPos = transform.position + transform.forward * 0.4f + Vector3.up * 1.6f;
                 Quaternion carryRot = transform.rotation;
 
@@ -544,11 +562,6 @@ namespace ElsaPetMod
                     carriedRigidbody.rotation = carryRot;
                 }
             }
-        }
-        private void FixedUpdate()
-        {
-            // Vazio. O transporte cinemático é gerido unicamente no LateUpdate 
-            // para evitar conflitos de ciclos e a velocidade fantasma de física.
         }
 
         public void SetScaleMultiplier(float multiplier)

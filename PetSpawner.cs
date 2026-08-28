@@ -33,7 +33,7 @@ namespace ElsaPetMod
             Object.DontDestroyOnLoad(spawnerObject);
             instance = spawnerObject.AddComponent<PetSpawner>();
 
-            Plugin.Log.LogInfo("[AiNet] PetSpawner inicializado via Steamworks.");
+            Plugin.Log.LogInfo("[AiNet] PetSpawner initialized via Steamworks.");
         }
 
         private static bool IsOnlineMaster()
@@ -87,7 +87,7 @@ namespace ElsaPetMod
             if (Object.FindObjectOfType<PetCompanionController>(true) != null) return;
             if (PhotonNetwork.GetPhotonView(packet.AllocatedViewID) != null) return;
 
-            Plugin.Log.LogInfo($"[AiNet] Evento de spawn recebido da rede Steam. Contexto: {packet.ContextName} | ViewID: {packet.AllocatedViewID}");
+            Plugin.Log.LogInfo($"[AiNet] Spawn event received from the Steam network. Context: {packet.ContextName} | ViewID: {packet.AllocatedViewID}");
 
             if (eventSpawnInProgress) return;
             eventSpawnInProgress = true;
@@ -122,7 +122,7 @@ namespace ElsaPetMod
                     }
                     catch (Exception ex)
                     {
-                        Plugin.Log.LogError("[AiNet] Erro no spawn atrasado: " + ex);
+                        Plugin.Log.LogError("[AiNet] Late spawn error: " + ex);
                     }
                 }
             }
@@ -269,16 +269,16 @@ namespace ElsaPetMod
 
                 view.ViewID = allocatedViewID;
                 if (existing == null) PhotonNetwork.RegisterPhotonView(view);
-                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawnou no Client! Contexto: {contextName} | ViewID: {view.ViewID}");
+                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawned in the Client! Context: {contextName} | ViewID: {view.ViewID}");
             }
             else if (PhotonNetwork.InRoom && isMaster)
             {
                 if (!PhotonNetwork.AllocateViewID(view) || view.ViewID <= 0) { Object.Destroy(petRoot); return null; }
-                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawnou no Master! Contexto: {contextName} | ViewID: {view.ViewID}");
+                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawned on Master! Context: {contextName} | ViewID: {view.ViewID}");
             }
             else
             {
-                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawnou no Singleplayer! Contexto: {contextName}");
+                Plugin.Log.LogInfo($"[AiNet] Ai-Chan spawned in Singleplayer! Context: {contextName}");
             }
 
             float bodyMass = PetSettings.PetMass != null ? PetSettings.PetMass.Value : 1.5f;

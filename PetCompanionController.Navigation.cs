@@ -6,6 +6,8 @@ using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
+using RepoSteamNetworking.API;
+using RepoSteamNetworking.Networking;
 
 namespace ElsaPetMod
 {
@@ -14,12 +16,14 @@ namespace ElsaPetMod
         public float followDistance = 2.2f;
         public float followStoppingDistance = 1.65f;
 
+        private PhysGrabHinge[] cachedDoors;
+        private float nextDoorCacheTime;
+
         private float nextPlayerSwitchTime;
         private bool isFollowingOwner;
         private Vector3 lastDestination = Vector3.positiveInfinity;
         private float lastSetDestinationTime;
 
-        // Otimização do Ghost Probing
         private float nextProbeTime;
         private Vector3 cachedBestDir = Vector3.forward;
 
@@ -87,18 +91,22 @@ namespace ElsaPetMod
         {
             if (PetSettings.EnableDebugLogs != null && PetSettings.EnableDebugLogs.Value)
             {
-                Plugin.Log.LogInfo($"[Ai-Chan] [NavMesh] {(toNavMesh ? "ENTROU na NavMesh" : "SAIU da NavMesh (Controle Manual)")} | Motivo: {reason}");
+                Plugin.Log.LogInfo($"[Ai-Chan] [NavMesh] {(toNavMesh ? "ENTERED NavMesh" : "EXIT NavMesh (Manual Control)")} | Motivo: {reason}");
             }
         }
 
         private bool IsDoor(Collider col)
         {
             if (col == null) return false;
-            if (col.GetComponentInParent<PhysGrabHinge>() != null || col.GetComponentInChildren<PhysGrabHinge>(true) != null) return true;
-            if (col.GetComponentInParent<HingeJoint>() != null || col.GetComponentInParent<ConfigurableJoint>() != null) return true;
 
-            string colName = col.gameObject.name.ToLower();
-            if (colName.Contains("door") || colName.Contains("porta") || colName.Contains("gate") || colName.Contains("hinge")) return true;
+            // A CURA DAS PRATELEIRAS: 
+            // Usa a sua descoberta da imagem! Apenas portas reais do mapa possuem o marcador DirtFinderMapDoor.
+            Transform current = col.transform;
+            while (current != null)
+            {
+                if (current.GetComponent("DirtFinderMapDoor") != null) return true;
+                current = current.parent;
+            }
 
             return false;
         }
@@ -139,17 +147,66 @@ namespace ElsaPetMod
 
         private void TryOpenNearbyDoors()
         {
+            if (PetSettings.EnableDoorOpening != null && !PetSettings.EnableDoorOpening.Value)
+                return;
+                
             if (DoorOpenMethod == null || Time.time < nextDoorCheckTime) return;
             nextDoorCheckTime = Time.time + 0.35f;
 
-            PhysGrabHinge nearestDoor = null;
-            float minDistance = 2.2f;
-
-            foreach (PhysGrabHinge door in UnityEngine.Object.FindObjectsOfType<PhysGrabHinge>())
+            // SISTEMA DE CACHE: Só faz a busca pesada no mapa a cada 15 segundos
+            if (cachedDoors == null || Time.time >= nextDoorCacheTime)
             {
+                cachedDoors = UnityEngine.Object.FindObjectsOfType<PhysGrabHinge>();
+                nextDoorCacheTime = Time.time + 15.0f;
+            }
+
+            if (cachedDoors.Length == 0) return;
+
+            PhysGrabHinge nearestDoor = null;
+            float minDistance = 4.0f; // Nova tolerância ajustada
+
+            // --- VISUAL DEBUGGING (RADAR DE PORTAS) ---
+            bool drawDebugRays = PetSettings.EnableDebugRays != null && PetSettings.EnableDebugRays.Value;
+            if (drawDebugRays)
+            {
+                Vector3 center = transform.position + Vector3.up * 0.5f;
+                // Desenha a cruz roxa baseada na direção que a Ai-Chan está olhando (transform.forward e transform.right)
+                PetRuntimeDrawer.DrawLine(center - transform.forward * 4.0f, center + transform.forward * 4.0f, new Color(0.6f, 0f, 1f), 0.35f);
+                PetRuntimeDrawer.DrawLine(center - transform.right * 4.0f, center + transform.right * 4.0f, new Color(0.6f, 0f, 1f), 0.35f);
+            }
+
+            // Loop de busca otimizado
+            // Loop de busca otimizado
+            for (int i = 0; i < cachedDoors.Length; i++)
+            {
+                PhysGrabHinge door = cachedDoors[i];
+
                 if (door == null || !IsDoorClosed(door)) continue;
 
-                float dist = Vector3.Distance(transform.position, door.transform.position);
+                // --- A CURA DAS PRATELEIRAS ---
+                // Ignora imediatamente qualquer dobradiça que não tenha o marcador do minimapa.
+                // Isso salva os armários, caixas e prateleiras de serem arrombados!
+                if (door.GetComponent("DirtFinderMapDoor") == null) continue;
+
+                float dist;
+                Collider doorCol = door.GetComponentInChildren<Collider>();
+
+                if (doorCol != null)
+                {
+                    Vector3 closestPoint = doorCol.ClosestPoint(transform.position);
+                    dist = Vector3.Distance(transform.position, closestPoint);
+
+                    // DEBUG: Desenha uma linha fina roxa se a porta entrar no raio de detecção
+                    if (drawDebugRays && dist < 4.0f)
+                    {
+                        PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, closestPoint, new Color(0.6f, 0f, 1f, 0.5f), 0.35f);
+                    }
+                }
+                else
+                {
+                    dist = Vector3.Distance(transform.position, door.transform.position);
+                }
+
                 if (dist < minDistance)
                 {
                     minDistance = dist;
@@ -159,9 +216,16 @@ namespace ElsaPetMod
 
             if (nearestDoor == null) return;
 
+            // DEBUG: Se achou o alvo final, desenha um laser rosa na porta escolhida por 2 segundos!
+            if (drawDebugRays)
+            {
+                PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, nearestDoor.transform.position, Color.magenta, 2.0f);
+            }
+
             int instanceID = nearestDoor.GetInstanceID();
             if (doorOpenCooldowns.TryGetValue(instanceID, out float cd) && Time.time < cd) return;
 
+            // Cooldown de 2 segundos para não dar spam de chamadas
             doorOpenCooldowns[instanceID] = Time.time + 2.0f;
 
             try
@@ -170,12 +234,33 @@ namespace ElsaPetMod
                 if (grabObj != null)
                 {
                     grabObj.EnemyInteractTimeSet();
+                    // Deixa a porta bem leve temporariamente (1kg) para abrir fácil
+                    grabObj.OverrideMass(1f, 1.5f);
                 }
+
+                // Destrava a fechadura nativa do jogo
                 DoorOpenMethod.Invoke(nearestDoor, null);
+
+                // --- A CURA DAS PORTAS DUPLAS (Empurrão Físico Orgânico) ---
+                Rigidbody rb = nearestDoor.GetComponent<Rigidbody>() ?? nearestDoor.GetComponentInParent<Rigidbody>();
+
+                if (rb != null && !rb.isKinematic)
+                {
+                    rb.WakeUp();
+
+                    // Usa a exata direção horizontal em que a Ai-Chan está andando/olhando
+                    Vector3 pushDir = transform.forward;
+                    pushDir.y = 0f;
+
+                    // Dá um "chute" (Impulse) de 5kg na porta!
+                    // Ao aplicar a força no centro de massa, a Unity calcula o arco da dobradiça
+                    // automaticamente, forçando ambas as portas a abrirem para a frente, fugindo dela.
+                    rb.AddForce(pushDir.normalized * 15f, ForceMode.Impulse);
+                }
             }
             catch (Exception ex)
             {
-                Plugin.Log.LogWarning("[Ai-Chan] Erro ao abrir porta: " + ex.Message);
+                Plugin.Log.LogWarning("[Ai-Chan] Error opening door: " + ex.Message);
             }
         }
 
@@ -225,7 +310,7 @@ namespace ElsaPetMod
 
             if (!UnityEngine.AI.NavMesh.SamplePosition(worldPoint, out UnityEngine.AI.NavMeshHit navHit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                Plugin.Log.LogWarning($"[Ai-Chan] Destino manual sem NavMesh: {worldPoint}");
+                Plugin.Log.LogWarning($"[Ai-Chan] Manual destination without NavMesh: {worldPoint}");
                 return;
             }
 
@@ -244,7 +329,7 @@ namespace ElsaPetMod
             // Evita reaproveitar approach point do carrinho anterior.
             lockedApproachPoint = null;
 
-            Plugin.Log.LogInfo($"[Ai-Chan] Destino manual: {manualMoveTarget}");
+            Plugin.Log.LogInfo($"[Ai-Chan] Manual target: {manualMoveTarget}");
 
             if (aiAudio != null)
                 aiAudio.PlayBark();
@@ -396,9 +481,7 @@ namespace ElsaPetMod
 
                 if (!foundPoint)
                 {
-                    // A CURA DA FRESTA: Aumentei o raio da esfera de 0.10f para 0.25f. 
-                    // Isso cria uma "raquete de neve" gorda. A esfera vai bater nas quinas do chão atual 
-                    // e nunca mais vai escorregar pelo buraco da geração procedural da sala!
+
                     hitCount = Physics.SphereCastNonAlloc(checkOrigin, 0.25f, Vector3.down, surfaceHitsBuffer, distance, mask, QueryTriggerInteraction.Ignore);
                     for (int i = 0; i < hitCount; i++)
                     {
@@ -501,6 +584,16 @@ namespace ElsaPetMod
 
         public void ManualSwitchOwner()
         {
+            // A CURA DO F5 NO CLIENT:
+            // Se quem apertou a tecla F5 for o Client, ele não tenta mudar sozinho.
+            // Ele manda um pacote silencioso pela Steam ordenando que o Host faça a troca!
+            if (PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode && !PhotonNetwork.IsMasterClient)
+            {
+                RepoSteamNetwork.SendPacket(new PetSwitchOwnerPacket(), NetworkDestination.HostOnly);
+                return;
+            }
+
+            // Se for o Host (ou Singleplayer), faz a troca da IA normalmente
             isCalledByOwner = false;
             SelectNextOwner(true);
         }
@@ -595,7 +688,7 @@ namespace ElsaPetMod
             escapeTimer = 0f;
             deadEndMemories.Clear();
             ownerBreadcrumbs.Clear();
-            Plugin.Log.LogInfo("[Ai-Chan] Anti-Stuck ativado. Teleportada em segurança.");
+            Plugin.Log.LogInfo("[Ai-Chan] Anti-Stuck activated. Teleported to safety.");
         }
 
         private void TickFollowOwner()
@@ -603,7 +696,6 @@ namespace ElsaPetMod
 
             if (owner == null) { StopMoving(); isFollowingOwner = false; return; }
 
-            // ADICIONE ISTO:
             if (TickManualMove())
                 return;
 
@@ -672,8 +764,6 @@ namespace ElsaPetMod
             {
                 stuckHighTimer = 0f;
             }
-            // SUBSTITUIR POR:
-            // SUBSTITUIR POR:
             float yDiffToOwner = owner.transform.position.y - transform.position.y;
             bool isOwnerAbove = yDiffToOwner > 0.40f && yDiffToOwner < 4.0f;
 
@@ -780,7 +870,7 @@ namespace ElsaPetMod
                 isActuallyMoving = distMoved > 0.03f;
             }
 
-            // SUBSTITUIR POR:
+             
             Vector3 checkDir = transform.forward;
             float horizontalDistToOwner = 0f;
             float yDiff = 0f;
@@ -814,11 +904,16 @@ namespace ElsaPetMod
 
             if (canDrawNow) PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, transform.position + Vector3.up * 0.5f + checkDir * 1.2f, wallInFront ? Color.red : Color.blue, debugFade);
 
-            // SUBSTITUIR POR:
-            // SUBSTITUIR POR:
+
+
             bool validLedgeTarget = false;
             float maxJumpHeight = PetSettings.MaxJumpObstacleHeight != null ? PetSettings.MaxJumpObstacleHeight.Value : 3.5f;
-            bool targetIsElevated = (yDiff > 0.40f && yDiff < 4.0f && horizontalDistToOwner < 5.0f);
+
+            // A CURA DO LASER VERMELHO (Trava de Parede):
+            // Só consideramos o alvo elevado se a distância horizontal for maior que um mínimo (ex: 0.8m)
+            // Se você (Dono) subiu em algo muito perto, ela não tenta pular colada na parede infinitamente, 
+            // ela vai caminhar pela NavMesh primeiro até pegar espaço!
+            bool targetIsElevated = (yDiff > 0.40f && yDiff < 4.0f && horizontalDistToOwner < 5.0f && horizontalDistToOwner > 0.8f);
 
             // Varre a mesa a uma distância de até 2.2m para travar a posição antes de encostar no colisor
             if (wallInFront || targetIsElevated)
@@ -871,7 +966,7 @@ namespace ElsaPetMod
                 else stuckTimer = Mathf.Max(0f, stuckTimer - Time.deltaTime);
             }
 
-            // SUBSTITUIR POR:
+              
             float jumpDelayLimit = targetIsElevated ? 0.35f : (PetSettings.AutoJumpDelay != null ? PetSettings.AutoJumpDelay.Value : 0.8f);
 
             if (jumpTimer > jumpDelayLimit)
@@ -885,7 +980,6 @@ namespace ElsaPetMod
                 if (maxDist < 2.0f) maxDist = 2.0f;
 
                 // Para alvos altos, exige que o ponto de aterrissagem esteja a pelo menos 0.9m de distância horizontal (evita pular reto para cima)
-                // Para alvos altos, exige que o ponto de aterrissagem esteja a pelo menos 0.9m de distância horizontal
                 float startTestDist = targetIsElevated ? 0.9f : 0.5f;
 
                 // OTIMIZAÇÃO DE CPU: Busca a lista de players UMA única vez antes do loop
@@ -1003,7 +1097,7 @@ namespace ElsaPetMod
         {
             isJumping = true;
 
-            // SUBSTITUIR POR:
+              
             if (agent != null && agent.enabled)
             {
                 if (agent.isOnNavMesh) agent.isStopped = true;
@@ -1031,6 +1125,29 @@ namespace ElsaPetMod
 
             try
             {
+                // DESENHA O ARCO DO PULO (DEBUG RAY)
+                if (PetSettings.EnableDebugRays != null && PetSettings.EnableDebugRays.Value)
+                {
+                    int segments = 15;
+                    Vector3 lastDebugPoint = startPos;
+
+                    for (int i = 1; i <= segments; i++)
+                    {
+                        float p = i / (float)segments; // Progresso falso (de 0 a 1)
+
+                        // As mesmas fórmulas matemáticas da sua Ai-Chan
+                        float hProg = Mathf.Sin(p * Mathf.PI * 0.5f);
+                        float vArc = Mathf.Sin(p * Mathf.PI) * arcBoost;
+
+                        Vector3 cFlat = Vector3.Lerp(startPos, targetPos, hProg);
+                        float cY = Mathf.Lerp(startPos.y, targetPos.y, p) + vArc;
+                        Vector3 nextDebugPoint = new Vector3(cFlat.x, cY, cFlat.z);
+
+                        // Usa o seu próprio renderizador de linhas para desenhar o arco em amarelo vivo
+                        PetRuntimeDrawer.DrawLine(lastDebugPoint, nextDebugPoint, Color.yellow, 2.5f);
+                        lastDebugPoint = nextDebugPoint;
+                    }
+                }
                 while (elapsed < duration)
                 {
                     if (state == PetState.Grabbed) yield break;
@@ -1046,7 +1163,6 @@ namespace ElsaPetMod
                     Vector3 nextPos = new Vector3(currentFlatPos.x, currentY, currentFlatPos.z);
 
                     // ANTI-CLIP DE TETO E PAREDE FORTE: Usa cápsula do corpo inteiro dela
-                    // ANTI-CLIP DE TETO E PAREDE FORTE (Fim do Pulo Fantasma)
                     if (progress > 0.05f && progress < 0.95f)
                     {
                         Vector3 dir = (nextPos - transform.position);
@@ -1082,7 +1198,7 @@ namespace ElsaPetMod
                     yield return null;
                 }
             }
-            // SUBSTITUIR POR:
+              
             finally
             {
                 isJumping = false;
@@ -1369,7 +1485,6 @@ namespace ElsaPetMod
             }
 
             // 1. NAVEGAÇÃO VIA NAVMESH 
-            // 1. NAVEGAÇÃO VIA NAVMESH 
             if (agent.enabled && agent.isOnNavMesh)
             {
                 agent.isStopped = false;
@@ -1394,8 +1509,22 @@ namespace ElsaPetMod
                     float probeDistance = 2.40f * currentScale;
                     float sphereRadius = 0.32f * currentScale;
 
-                    physicalObstacleInFront = Physics.SphereCast(sphereOrigin, sphereRadius, moveDir, out hitObstacle, probeDistance, obstacleMask, QueryTriggerInteraction.Ignore)
-                                                   && !IsColliderPlayerOrItem(hitObstacle.collider);
+                    // O SENSOR DE MESA ABSOLUTO: 
+                    // Qualquer coisa sólida detectada pela esfera que NÃO for a própria Ai-Chan nem um jogador, é parede.
+                    if (Physics.SphereCast(sphereOrigin, sphereRadius, moveDir, out hitObstacle, probeDistance, obstacleMask, QueryTriggerInteraction.Ignore))
+                    {
+                        if (hitObstacle.collider != null && !hitObstacle.collider.transform.IsChildOf(transform) &&
+                            hitObstacle.collider.gameObject.layer != LayerMask.NameToLayer("Player") &&
+                            hitObstacle.collider.gameObject.layer != LayerMask.NameToLayer("PlayerOnlyCollision"))
+                        {
+                            // A CURA DA FENDA: Se for muito rasteiro (tipo um tapete/chão mal modelado), ela ignora para não subir à toa
+                            float hitHeightRelative = hitObstacle.point.y - transform.position.y;
+                            if (hitHeightRelative > 0.15f * currentScale)
+                            {
+                                physicalObstacleInFront = true;
+                            }
+                        }
+                    }
 
                     bool isPathEnded = agent.hasPath && agent.pathStatus == NavMeshPathStatus.PathPartial && agent.remainingDistance < 0.8f;
                     bool isStuckLooking = agent.velocity.sqrMagnitude < 0.05f && distToTarget > actualStoppingDistance + 0.5f;
@@ -1403,7 +1532,7 @@ namespace ElsaPetMod
                     if (physicalObstacleInFront && !isPreparingToJump && !targetElevated)
                     {
                         shouldSwitchToManual = true;
-                        switchReason = "Obstáculo físico (mesa/prateleira) detectado à frente";
+                        switchReason = "Obstáculo físico (mesa/bancada) detectado à frente";
                     }
                     else if (!targetElevated && !isTargetOnNavMesh)
                     {
@@ -1456,8 +1585,28 @@ namespace ElsaPetMod
                         {
                             lastDestination = navDestination;
                             lastSetDestinationTime = Time.time;
+
+                            
                         }
                     }
+
+                    // --- DESENHA A ROTA DO NAVMESH (O GPS) ---
+                    // Deixando ele aqui fora do "if", o jogo vai desenhar o GPS em todos os frames 
+                    // em que ela estiver andando, criando uma linha constante e perfeita!
+                    bool drawDebugRays = PetSettings.EnableDebugRays != null && PetSettings.EnableDebugRays.Value;
+                    if (drawDebugRays && agent.hasPath)
+                    {
+                        Vector3[] corners = agent.path.corners;
+                        for (int c = 0; c < corners.Length - 1; c++)
+                        {
+                            Vector3 p1 = corners[c] + Vector3.up * 0.2f;
+                            Vector3 p2 = corners[c + 1] + Vector3.up * 0.2f;
+
+                            PetRuntimeDrawer.DrawLine(p1, p2, Color.cyan, 0.05f); // Tempo curto (0.05) pois atualiza todo frame
+                            PetRuntimeDrawer.DrawLine(p2, p2 + Vector3.up * 0.5f, Color.white, 0.05f);
+                        }
+                    }
+
                     return;
                 }
             }
@@ -1949,9 +2098,8 @@ namespace ElsaPetMod
         }
     }
 
-    /// <summary>
     /// Renderizador de linhas 3D visíveis diretamente dentro do jogo compilado (Standalone).
-    /// </summary>
+
     public static class PetRuntimeDrawer
     {
         private class LineEntry

@@ -7,10 +7,9 @@ namespace ElsaPetMod
 {
     public partial class PetCompanionController
     {
-        public const float NetworkMovingInterval = 0.02f;
+        public const float NetworkMovingInterval = 0.05f;
         public const float NetworkStoppedInterval = 1.5f;
 
-        // AUMENTADO PARA 12m: Previne que a pet teleporte pro chão durante arremessos ou quedas rápidas
         private const float RemoteSnapDistance = 12.0f;
 
         private float lastNetworkSentTime;
@@ -68,7 +67,6 @@ namespace ElsaPetMod
                 return true;
             }
 
-            // Mantém o envio rápido de pacotes durante a queda física
             return (transform.position - lastNetworkSentPosition).sqrMagnitude > 0.0001f;
         }
 
@@ -79,7 +77,6 @@ namespace ElsaPetMod
             hasNetworkTarget = true;
         }
 
-        // Adicione esta nova função
         public bool IsGrabbedByLocalPlayer()
         {
             if (myGrabObject == null)
@@ -93,8 +90,6 @@ namespace ElsaPetMod
             if (localPlayer == null || localPlayer.physGrabber == null)
                 return false;
 
-            // Fonte imediata e confiável: o próprio PhysGrabber local.
-            // Não depende de playerGrabbing já ter sido atualizado pela rede.
             PhysGrabObject heldObject = GrabbedPhysGrabObjectField?.GetValue(localPlayer.physGrabber) as PhysGrabObject;
 
             if (heldObject == myGrabObject)
@@ -109,8 +104,6 @@ namespace ElsaPetMod
             if (!IsNetworkClientOnly || !hasNetworkTarget)
                 return;
 
-            // NENHUM BLOQUEIO AQUI! A Steam manda na posição visual o tempo todo.
-
             float distance = Vector3.Distance(transform.position, networkTargetPosition);
 
             if (distance > RemoteSnapDistance)
@@ -120,26 +113,19 @@ namespace ElsaPetMod
                 return;
             }
 
-            float posFactor = 1f - Mathf.Exp(-25f * Time.deltaTime);
+            float posFactor = 1f - Mathf.Exp(-12f * Time.deltaTime);
             transform.position = Vector3.Lerp(
                 transform.position,
                 networkTargetPosition,
                 posFactor
             );
-
-            if (Quaternion.Angle(transform.rotation, networkTargetRotation) > 45f)
-            {
-                transform.rotation = networkTargetRotation;
-            }
-            else
-            {
-                float rotFactor = 1f - Mathf.Exp(-30f * Time.deltaTime);
-                transform.rotation = Quaternion.Slerp(
-                    transform.rotation,
-                    networkTargetRotation,
-                    rotFactor
-                );
-            }
+            
+            float rotFactor = 1f - Mathf.Exp(-15f * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                networkTargetRotation,
+                rotFactor
+            );
         }
 
         public bool ShouldSendNetworkTransform()
