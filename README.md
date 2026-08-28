@@ -25,7 +25,17 @@ A video of an older version of the mod:
 - Make the interpolation system better.
 - on the next update of my mod, revise for error before releasing.
 
-Below, a test of how the readme will look like:
+## Feedback
+
+
+For feedback, suggestions, or to report errors, feel free to use the form below:
+
+https://forms.gle/77EmgDVPakPYxtEQ7 
+or
+https://docs.google.com/forms/d/e/1FAIpQLScmZjEb3weX5crLXjnJZaA0WBDP47EC4TETDK8DDkSCmK28fw/viewform?usp=dialog
+
+
+Below, the readme:
 
 # Ai-Chan Companion
 
