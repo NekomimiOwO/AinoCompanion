@@ -29,6 +29,7 @@ A video of an older version of the mod:
 
 
 For feedback, suggestions, or to report errors, feel free to use the form below:
+Does not require an email address.
 
 https://forms.gle/77EmgDVPakPYxtEQ7 
 or
