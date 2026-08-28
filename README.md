@@ -31,8 +31,6 @@ A video of an older version of the mod:
 For feedback, suggestions, or to report errors, feel free to use the form below:
 Does not require an email address.
 
-https://forms.gle/77EmgDVPakPYxtEQ7 
-or
 https://docs.google.com/forms/d/e/1FAIpQLScmZjEb3weX5crLXjnJZaA0WBDP47EC4TETDK8DDkSCmK28fw/viewform?usp=dialog
 
 
