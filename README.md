@@ -24,6 +24,35 @@ A video of an older version of the mod:
 - <del>Remove: "NavMeshObstacle Carving Conflict: The PhysGrabCart actively carves a dynamic hole in the NavMesh. The Unity NavMeshAgent's native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh." from the readme, since she walks normally near the cart—even generating NavMesh paths through it.
 - <del>Make the interpolation system better.</del>
 
+## Network Infrastructure Hardening To-Do List (It will not be done soon)
+
+These improvements aim to make the mod resilient against packet loss, out-of-order delivery, and host migration without significantly increasing bandwidth usage.
+
+- [ ] Use reliable sending for critical one-time events
+  Switch PetGiveItemPacket, PetCarryPlayerPacket, PetSyncCarryPacket, PetSyncPettingPacket, PetExplodePacket, and PetSwitchOwnerPacket to a reliable transport mode (if supported by RepoSteamNetworking). This guarantees delivery at the cost of a few extra bytes only when an event occurs.
+
+- [ ] Add sequence numbers to discrete event packets
+  Include a monotonically increasing Sequence field in all event packets (e.g., PetSyncCarryPacket). On the receiver, ignore any packet with a sequence <= the last processed one to prevent out-of-order execution.
+
+- [ ] Re-send client preferences until acknowledged
+  Modify SendPreferencesRoutine to send PetClientPreferencesPacket periodically (e.g., every 2 seconds) until the host sends a small acknowledgment packet back. This prevents lost preferences from causing fallback to default distances.
+
+- [ ] Include minimal state flags in continuous snapshots
+  Add a single byte bitmask to PetStatePacket that indicates whether the pet is currently carrying an item or a player. This allows clients to correct a lost PetSyncCarryPacket within the next 50 ms snapshot, without needing the full target ViewID (which can be corrected later via event or on next sync).
+
+- [ ] Improve snapshot buffer overflow handling
+  When the buffer is full because of a network stall, drop the oldest snapshots first and allow the render time to catch up gradually instead of teleporting immediately. This avoids jarring jumps after long disconnections.
+
+- [ ] Add a "keep-alive" snapshot when idle for >1 s
+  If the pet has been stationary for more than 1 second, send a single lightweight snapshot (position/rotation only, no state) so that clients can measure realistic packet delay even when the pet is not moving. This prevents the adaptive interpolation from being fooled by long idle periods.
+
+- [ ] Validate and discard malformed or impossible packets
+  Before applying received PetStatePacket, check that the position is within a reasonable bounding box (e.g., current level bounds) and the rotation is not NaN. Discard invalid packets to avoid breaking the pet's transform.
+
+- [ ] Log network anomalies for debugging
+  Add optional debug logging when a packet is dropped due to out-of-order, buffer overflow, or invalid data. This helps identify issues without affecting normal gameplay.
+
+
 ## Feedback
 
 
