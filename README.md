@@ -16,7 +16,7 @@ A video of an older version of the mod:
 - <del> Add debug rays for navmesh navigation</del>
 - <del>explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).</del>
 - She sometimes goes inside the store tables.
-- rewrite and revise the readme to make it seem less artificial.
+- <del>rewrite and revise the readme to make it seem less artificial.</del>
 - <del>delete "(like Factories/Mines)" from README</del>
 - <del>Fix rotation on multiplayer for the client (priority)</del>
 - <del>Investigate and fix the owner switch key</del>
