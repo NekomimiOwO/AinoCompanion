@@ -26,8 +26,6 @@ A video of an older version of the mod:
 
 ## Network Infrastructure Hardening To-Do List (It will not be done soon)
 
-These improvements aim to make the mod resilient against packet loss, out-of-order delivery, and host migration without significantly increasing bandwidth usage.
-
 - [ ] Use reliable sending for critical one-time events
   Switch PetGiveItemPacket, PetCarryPlayerPacket, PetSyncCarryPacket, PetSyncPettingPacket, PetExplodePacket, and PetSwitchOwnerPacket to a reliable transport mode (if supported by RepoSteamNetworking). This guarantees delivery at the cost of a few extra bytes only when an event occurs.
 
