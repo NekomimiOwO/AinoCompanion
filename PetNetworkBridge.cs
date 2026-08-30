@@ -51,6 +51,7 @@ namespace ElsaPetMod
             RepoSteamNetwork.AddCallback<PetSyncPettingPacket>(OnSyncPettingPacketReceived);
             RepoSteamNetwork.AddCallback<PetSwitchOwnerPacket>(OnSwitchOwnerPacketReceived);
             RepoSteamNetwork.AddCallback<PetExplodePacket>(OnExplodePacketReceived);
+            RepoSteamNetwork.AddCallback<PetClientPreferencesPacket>(OnClientPreferencesReceived);
         }
 
         public override void OnDisable()
@@ -62,8 +63,23 @@ namespace ElsaPetMod
             RepoSteamNetwork.RemoveCallback<PetSyncPettingPacket>(OnSyncPettingPacketReceived);
             RepoSteamNetwork.RemoveCallback<PetSwitchOwnerPacket>(OnSwitchOwnerPacketReceived);
             RepoSteamNetwork.RemoveCallback<PetExplodePacket>(OnExplodePacketReceived);
+            RepoSteamNetwork.RemoveCallback<PetClientPreferencesPacket>(OnClientPreferencesReceived);
 
             base.OnDisable();
+        }
+
+        private void OnClientPreferencesReceived(PetClientPreferencesPacket packet)
+        {
+            if (PhotonNetwork.IsMasterClient && controller != null)
+            {
+                controller.clientFollowDistances[packet.PlayerViewID] = packet.FollowDistance;
+                controller.clientStoppingDistances[packet.PlayerViewID] = packet.StoppingDistance;
+
+                if (PetSettings.EnableStateTransitionLogs != null && PetSettings.EnableStateTransitionLogs.Value)
+                {
+                    Plugin.Log.LogInfo($"[AiNet] Client preferences received -> PlayerViewID: {packet.PlayerViewID} | Follow: {packet.FollowDistance}m | Stop: {packet.StoppingDistance}m");
+                }
+            }
         }
 
         private bool IsPacketForThisPet(int petViewId)
@@ -145,6 +161,39 @@ namespace ElsaPetMod
             controller.StartExplodeCountdown(packet.Delay, true);
         }
 
+        private void Start()
+        {
+            if (PhotonNetwork.InRoom && !PhotonNetwork.OfflineMode && !PhotonNetwork.IsMasterClient)
+            {
+                StartCoroutine(SendPreferencesRoutine());
+            }
+        }
+
+        private System.Collections.IEnumerator SendPreferencesRoutine()
+        {
+            // Aguarda pacientemente até o corpo do jogador existir na sala
+            while (SemiFunc.PlayerAvatarLocal() == null || SemiFunc.PlayerAvatarLocal().photonView == null)
+            {
+                yield return new UnityEngine.WaitForSeconds(0.5f);
+            }
+
+            PlayerAvatar localPlayer = SemiFunc.PlayerAvatarLocal();
+
+            var packet = new PetClientPreferencesPacket
+            {
+                PlayerViewID = localPlayer.photonView.ViewID,
+                FollowDistance = PetSettings.FollowDistance != null ? PetSettings.FollowDistance.Value : 2.0f,
+                StoppingDistance = PetSettings.FollowStoppingDistance != null ? PetSettings.FollowStoppingDistance.Value : 2.0f
+            };
+
+            RepoSteamNetwork.SendPacket(packet, NetworkDestination.HostOnly);
+
+            if (PetSettings.EnableStateTransitionLogs != null && PetSettings.EnableStateTransitionLogs.Value)
+            {
+                Plugin.Log.LogInfo($"[AiNet] Client preferences successfully sent to Host -> Follow: {packet.FollowDistance}m | Stop: {packet.StoppingDistance}m");
+            }
+        }
+
 
         private void OnStatePacketReceived(PetStatePacket packet)
         {
@@ -168,6 +217,23 @@ namespace ElsaPetMod
 
             if (controller == null)
                 return;
+
+            if (packet.OwnerViewID > 0)
+            {
+                PhotonView ownerView = PhotonView.Find(packet.OwnerViewID);
+                if (ownerView != null)
+                {
+                    PlayerAvatar syncedOwner = ownerView.GetComponent<PlayerAvatar>();
+                    if (syncedOwner != null && controller.owner != syncedOwner)
+                    {
+                        controller.owner = syncedOwner;
+                    }
+                }
+            }
+            else
+            {
+                controller.owner = null;
+            }
 
             if (Enum.IsDefined(typeof(PetCompanionController.PetState), packet.StateIndex) && !controller.IsRecovering)
             {

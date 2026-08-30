@@ -764,6 +764,12 @@ namespace ElsaPetMod
             if (item.GetComponent<PhysGrabCart>() != null || item.GetComponentInParent<PhysGrabCart>() != null) return false;
             if (item.GetComponent<ValuableObject>() != null) return true;
 
+            if (item.name.Contains("Player Death Head") || item.GetComponent("PlayerDeathHead") != null)
+            {
+                if (PetSettings.EnableCarryingDeadPlayers != null && PetSettings.EnableCarryingDeadPlayers.Value)
+                    return true;
+            }
+
             ItemAttributes itemAttr = item.GetComponent<ItemAttributes>();
             if (itemAttr != null)
             {
@@ -790,6 +796,8 @@ namespace ElsaPetMod
             if (Vector3.Distance(transform.position, item.transform.position) > maxDistance) return false;
 
             if (!IsValidCarryableItem(item)) return false;
+
+            bool isDeadHead = item.name.Contains("Player Death Head") || item.GetComponent("PlayerDeathHead") != null;
 
             float limit = PetSettings.MaxMass != null ? PetSettings.MaxMass.Value : 3f;
             if (item.massOriginal > limit) return false;

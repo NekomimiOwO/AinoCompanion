@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using UnityEngine;
 
 namespace ElsaPetMod
@@ -35,7 +36,16 @@ namespace ElsaPetMod
             {
                 startTime = Time.unscaledTime;
                 isInitialized = true;
-                Plugin.Log.LogInfo("[Ai-Chan Profiler] Global network tracker initialized.");
+                Plugin.Log.LogInfo("[Ai-Chan Profiler] Network statistics profiler initialized.");
+            }
+        }
+
+        // A CURA DO FANTASMA: Se o mapa recarregar, esvazia a instância!
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
             }
         }
 
@@ -54,17 +64,29 @@ namespace ElsaPetMod
 
         public void PrintStats(string trigger)
         {
-            float uptimeSeconds = Time.unscaledTime - startTime;
-            TimeSpan t = TimeSpan.FromSeconds(uptimeSeconds);
-            string uptimeString = string.Format("{0:D2}h:{1:D2}m:{2:D2}s", t.Hours, t.Minutes, t.Seconds);
+            try
+            {
+                float uptimeSeconds = Mathf.Max(0f, Time.unscaledTime - startTime);
+                TimeSpan t = TimeSpan.FromSeconds((double)uptimeSeconds);
 
-            Plugin.Log.LogInfo($"=== [Ai-Chan Network : {trigger}] ===");
-            Plugin.Log.LogInfo($"Total Uptime: {uptimeString}");
-            Plugin.Log.LogInfo("-------------------------------------------------");
-            Plugin.Log.LogInfo("[ STEAM NETWORKING (MOD DATA) ]");
-            Plugin.Log.LogInfo($"Current Upload: {lastSentBps} B/s | Current Download: {lastReceivedBps} B/s");
-            Plugin.Log.LogInfo($"Total Upload: {totalBytesSent / 1024f:F2} KB | Total Download: {totalBytesReceived / 1024f:F2} KB");
-            Plugin.Log.LogInfo("=================================================");
+                // A CURA DO TRAVAMENTO (StringBuilder):
+                // Constrói o texto gigante na memória e envia uma única vez ao console!
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine(); // Pula uma linha no console para ficar organizado
+                sb.AppendLine($"=== [Ai-Chan Network : {trigger}] ===");
+                sb.AppendLine($"Total Uptime: {t.Hours:D2}h:{t.Minutes:D2}m:{t.Seconds:D2}s");
+                sb.AppendLine("-------------------------------------------------");
+                sb.AppendLine("[ STEAM NETWORKING (MOD DATA) ]");
+                sb.AppendLine($"Current Upload: {lastSentBps} B/s | Current Download: {lastReceivedBps} B/s");
+                sb.AppendLine($"Total Upload: {totalBytesSent / 1024f:F2} KB | Total Download: {totalBytesReceived / 1024f:F2} KB");
+                sb.Append("=================================================");
+
+                Plugin.Log.LogInfo(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError($"[AiNet] Falha ao imprimir o Profiler: {ex.Message}");
+            }
         }
 
         public static void RecordSend(int bytes)

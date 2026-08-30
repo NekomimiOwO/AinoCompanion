@@ -255,9 +255,32 @@ namespace ElsaPetMod
                     if (pet.TryCarryPlayer(friendAvatar))
                         ReleasePlayerItem(player);
                 }
-                else if (pet.TryGiveItem(heldItem))
+                else
                 {
-                    ReleasePlayerItem(player);
+                    // LÓGICA DA CABEÇA MORTA: Bypass de peso
+
+                    bool isDeadHead = heldItem.name.Contains("Player Death Head") || heldItem.GetComponent("PlayerDeathHead") != null;
+
+                    if (isDeadHead)
+                    {
+                        if (PetSettings.EnableCarryingDeadPlayers != null && !PetSettings.EnableCarryingDeadPlayers.Value)
+                            return; // Aborta se a configuração estiver desligada
+
+                        float maxAllowed = PetSettings.MaxMass != null ? PetSettings.MaxMass.Value : 3f;
+
+                        // Engana o limite de peso para a Ai-Chan aceitar o corpo
+                        if (heldItem.massOriginal > maxAllowed)
+                        {
+                            heldItem.massOriginal = maxAllowed;
+                            Rigidbody itemRb = heldItem.GetComponent<Rigidbody>();
+                            if (itemRb != null) itemRb.mass = maxAllowed;
+                        }
+                    }
+
+                    if (pet.TryGiveItem(heldItem))
+                    {
+                        ReleasePlayerItem(player);
+                    }
                 }
             }
             else if (IsPlayerTumbling(player))

@@ -6,14 +6,23 @@ namespace ElsaPetMod
     public static class PetSettings
     {
         public static ConfigEntry<bool> EnableDebugLogs;
+        public static ConfigEntry<bool> EnableCarryingDeadPlayers;
         public static ConfigEntry<bool> EnableStateTransitionLogs;
         public static ConfigEntry<bool> EnableNavMeshLogs;
         public static ConfigEntry<bool> EnableCarryJitterLogs;
         public static ConfigEntry<bool> EnableDoorOpening;
+        public static ConfigEntry<bool> EnableAntiFlickRotation;
         public static ConfigEntry<float> CartApproachDistance;
         public static ConfigEntry<float> CartDropDistance;
         public static ConfigEntry<float> ShopDropDistance;
         public static ConfigEntry<float> CarrySpeed;
+        public static ConfigEntry<bool> EnableAdaptiveInterpolation;
+        public static ConfigEntry<bool> EnableSnapshotInterpolation;
+        public static ConfigEntry<float> SnapshotBufferMs;
+
+        public static ConfigEntry<bool> EnableNetworkShadow;
+        public static ConfigEntry<float> ShadowSimulatedPing;
+        public static ConfigEntry<float> ShadowPacketLoss;
 
         public static ConfigEntry<float> Speed;
         public static ConfigEntry<float> MaxMass;
@@ -43,6 +52,7 @@ namespace ElsaPetMod
 
         public static ConfigEntry<bool> EnableExplodeCommand;
         public static ConfigEntry<int> GhostProbeRays;
+        public static ConfigEntry<float> ShadowSimulatedJitter; // Nova variável
         public static ConfigEntry<bool> EnableDebugRays; // <- NOVO: Opção para ver os fantasmas
         public static ConfigEntry<float> DebugRaysFadeTime; // <- NOVO AQUI
 
@@ -88,6 +98,12 @@ namespace ElsaPetMod
                  new ConfigDescription(
                     "Maximum distance (in meters) for Ai-Chan to be able to take an item from the player's hand.",
                     new AcceptableValueRange<float>(2f, 8f)));
+
+            EnableCarryingDeadPlayers = config.Bind(
+                "Interaction",
+                "Enable Carrying Dead Players",
+                true,
+                new ConfigDescription("Permite que a Ai-Chan carregue a cabeça de jogadores mortos (Player Death Head) para o carrinho/extração como se fosse um item comum."));
 
             Speed = config.Bind(
                 "Movement",
@@ -244,6 +260,36 @@ namespace ElsaPetMod
                     "Interval in minutes to switch target player in multiplayer (0 disables).",
                     new AcceptableValueRange<float>(2f, 10f)));
 
+            EnableAdaptiveInterpolation = config.Bind(
+                "Multiplayer",
+                "Enable Adaptive Interpolation",
+                true,
+                new ConfigDescription("Ajusta dinamicamente a suavidade do movimento no multiplayer com base na flutuação e atraso da internet (Jitter)."));
+
+            EnableAntiFlickRotation = config.Bind(
+            "Multiplayer",
+            "Enable Anti-Flick Rotation",
+            true,
+            new ConfigDescription("Impede que a Ai-Chan dê mortais/giros bizarros (Gimbal Lock) quando há pulo de pacotes na rede."));
+
+            EnableSnapshotInterpolation = config.Bind(
+            "Multiplayer",
+            "Enable Snapshot Interpolation",
+            true,
+            new ConfigDescription("Usa um Jitter Buffer (Padrão AAA) que atrasa a Ai-Chan milissegundos no passado para garantir fluidez perfeita, ignorando engasgos severos."));
+
+            SnapshotBufferMs = config.Bind(
+                "Multiplayer",
+                "Snapshot Buffer (ms)",
+                100f,
+                new ConfigDescription("O tamanho do atraso do Snapshot. 100ms é o padrão ouro. Aumente para 200ms se a internet for extremamente instável.", new AcceptableValueRange<float>(50f, 500f)));
+
+            ShadowSimulatedJitter = config.Bind(
+                "Experimental",
+                "Shadow Simulated Jitter (ms)",
+                20f,
+                new ConfigDescription("Simulated jitter (ping fluctuation) for the ghost in milliseconds. 20ms is realistic, 200ms is extreme.", new AcceptableValueRange<float>(0f, 200f)));
+
             InteractKey = config.Bind(
                 "Controls",
                 "Give Item Key",
@@ -336,6 +382,24 @@ namespace ElsaPetMod
                 new ConfigDescription(
                     "How long (in seconds) the breadcrumb trail rays remain visible on screen.",
                     new AcceptableValueRange<float>(0.05f, 5.0f)));
+
+            EnableNetworkShadow = config.Bind(
+                "Experimental",
+                "Enable Network Shadow (Ghost Debugger)",
+                false,
+                new ConfigDescription("Spawns a ghost Ai-Chan next to the real one in Singleplayer to visualize how multiplayer clients see her with lag and packet loss."));
+
+            ShadowSimulatedPing = config.Bind(
+                "Experimental",
+                "Shadow Simulated Ping (ms)",
+                50f,
+                new ConfigDescription("Simulated latency for the ghost in milliseconds.", new AcceptableValueRange<float>(0f, 100f)));
+
+            ShadowPacketLoss = config.Bind(
+                "Experimental",
+                "Shadow Packet Loss (%)",
+                5f,
+                new ConfigDescription("Simulated packet loss percentage for the ghost.", new AcceptableValueRange<float>(0f, 100f)));
         }
 
         public static KeyCode GetInteractKeyCode()

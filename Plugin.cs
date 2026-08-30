@@ -12,7 +12,7 @@ namespace ElsaPetMod
     {
         public const string MODGUID = "com.neko3004.aichancompanion";
         public const string MODNAME = "Ai-Chan Companion";
-        public const string MODVERSION = "1.0.2";
+        public const string MODVERSION = "1.0.3";
 
         public static Plugin Instance { get; private set; }
         public static ManualLogSource Log { get; private set; }
@@ -55,13 +55,14 @@ namespace ElsaPetMod
             RepoSteamNetwork.RegisterPacket<PetSpawnPacket>();
             RepoSteamNetwork.RegisterPacket<PetRequestSyncPacket>();
             RepoSteamNetwork.RegisterPacket<PetExplodePacket>();
+            RepoSteamNetwork.RegisterPacket<PetClientPreferencesPacket>();
 
             harmony = new Harmony(MODGUID);
 
             try
             {
                 harmony.PatchAll(typeof(Plugin).Assembly);
-                Log.LogInfo($"{MODNAME} v{MODVERSION} loaded successfully (Steam Network enabled).");
+                Log.LogInfo($"{MODNAME} v{MODVERSION} loaded successfully, yay! take good care of me! >.<");
             }
             catch (System.Exception ex)
             {

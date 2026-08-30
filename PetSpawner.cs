@@ -373,6 +373,32 @@ namespace ElsaPetMod
                 if (NavMesh.SamplePosition(position, out NavMeshHit navHit, 2f, NavMesh.AllAreas)) agent.Warp(navHit.position);
                 else agent.Warp(position);
             }
+            // --- INJEÇÃO DO NETWORK SHADOW DEBUGGER ---
+            // --- INJEÇÃO DO NETWORK SHADOW DEBUGGER ---
+            if (PetSettings.EnableNetworkShadow != null && PetSettings.EnableNetworkShadow.Value)
+            {
+                if (!PhotonNetwork.InRoom || PhotonNetwork.OfflineMode || PhotonNetwork.IsMasterClient)
+                {
+                    GameObject ghostVisual = CreateAinoVisual(null);
+                    if (ghostVisual != null)
+                    {
+                        ghostVisual.name = "Ai-Chan Ghost (Network Shadow)";
+
+                        NetworkShadowDebugger shadow = petRoot.AddComponent<NetworkShadowDebugger>();
+                        shadow.realAiChan = petRoot.transform;
+                        shadow.ghostAiChan = ghostVisual.transform;
+
+                        if (PetSettings.ShadowSimulatedPing != null)
+                            shadow.simulatedPingMs = PetSettings.ShadowSimulatedPing.Value;
+                        if (PetSettings.ShadowPacketLoss != null)
+                            shadow.packetLossPercent = PetSettings.ShadowPacketLoss.Value;
+                        if (PetSettings.ShadowSimulatedJitter != null)
+                            shadow.simulatedJitterMs = PetSettings.ShadowSimulatedJitter.Value; // Mapeamento novo
+
+                        Plugin.Log.LogInfo("[AiNet] Network Shadow Debugger Injetado! O Fantasma vai te seguir.");
+                    }
+                }
+            }
 
             return petRoot;
         }

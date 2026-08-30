@@ -89,6 +89,7 @@ namespace ElsaPetMod
     {
         public int PetViewID;
         public int TargetViewID;
+        public Vector3 Velocity;
         public bool IsPlayer;
         public bool IsPickingUp;
         public bool InheritScale; // Adicionado para sincronizar a decisão do Master
@@ -173,6 +174,27 @@ namespace ElsaPetMod
         protected override void ReadData(SocketMessage socketMessage)
         {
             SenderSteamID = socketMessage.Read<ulong>();
+        }
+    }
+
+    public class PetClientPreferencesPacket : NetworkPacket<PetClientPreferencesPacket>
+    {
+        public int PlayerViewID;
+        public float FollowDistance;
+        public float StoppingDistance;
+
+        protected override void WriteData(SocketMessage socketMessage)
+        {
+            socketMessage.Write(PlayerViewID);
+            socketMessage.Write(FollowDistance);
+            socketMessage.Write(StoppingDistance);
+        }
+
+        protected override void ReadData(SocketMessage socketMessage)
+        {
+            PlayerViewID = socketMessage.Read<int>();
+            FollowDistance = socketMessage.Read<float>();
+            StoppingDistance = socketMessage.Read<float>();
         }
     }
 }

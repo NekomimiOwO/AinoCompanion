@@ -64,6 +64,7 @@ namespace ElsaPetMod
         // --- SISTEMA DE ABERTURA NATIVA DE PORTAS (MIMIC LOGIC) ---
         private static readonly MethodInfo DoorOpenMethod = typeof(PhysGrabHinge).GetMethod("OpenImpulse", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo DoorClosedField = typeof(PhysGrabHinge).GetField("closed", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo CloseDisableTimerField = typeof(PhysGrabHinge).GetField("closeDisableTimer", BindingFlags.Instance | BindingFlags.NonPublic);
         private readonly Dictionary<int, float> doorOpenCooldowns = new Dictionary<int, float>();
         private float nextDoorCheckTime;
 
@@ -149,11 +150,10 @@ namespace ElsaPetMod
         {
             if (PetSettings.EnableDoorOpening != null && !PetSettings.EnableDoorOpening.Value)
                 return;
-                
+
             if (DoorOpenMethod == null || Time.time < nextDoorCheckTime) return;
             nextDoorCheckTime = Time.time + 0.35f;
 
-            // SISTEMA DE CACHE: Só faz a busca pesada no mapa a cada 15 segundos
             if (cachedDoors == null || Time.time >= nextDoorCacheTime)
             {
                 cachedDoors = UnityEngine.Object.FindObjectsOfType<PhysGrabHinge>();
@@ -163,48 +163,41 @@ namespace ElsaPetMod
             if (cachedDoors.Length == 0) return;
 
             PhysGrabHinge nearestDoor = null;
-            float minDistance = 4.0f; // Nova tolerância ajustada
+            // 1. RAIO REDUZIDO: Só procura portas em um raio de 3 metros
+            float minDistance = 4.0f;
 
-            // --- VISUAL DEBUGGING (RADAR DE PORTAS) ---
             bool drawDebugRays = PetSettings.EnableDebugRays != null && PetSettings.EnableDebugRays.Value;
             if (drawDebugRays)
             {
                 Vector3 center = transform.position + Vector3.up * 0.5f;
-                // Desenha a cruz roxa baseada na direção que a Ai-Chan está olhando (transform.forward e transform.right)
-                PetRuntimeDrawer.DrawLine(center - transform.forward * 4.0f, center + transform.forward * 4.0f, new Color(0.6f, 0f, 1f), 0.35f);
-                PetRuntimeDrawer.DrawLine(center - transform.right * 4.0f, center + transform.right * 4.0f, new Color(0.6f, 0f, 1f), 0.35f);
+                PetRuntimeDrawer.DrawLine(center - transform.forward * 2.0f, center + transform.forward * 2.0f, new Color(0.6f, 0f, 1f), 0.35f);
+                PetRuntimeDrawer.DrawLine(center - transform.right * 2.0f, center + transform.right * 2.0f, new Color(0.6f, 0f, 1f), 0.35f);
             }
 
-            // Loop de busca otimizado
-            // Loop de busca otimizado
             for (int i = 0; i < cachedDoors.Length; i++)
             {
                 PhysGrabHinge door = cachedDoors[i];
 
                 if (door == null || !IsDoorClosed(door)) continue;
-
-                // --- A CURA DAS PRATELEIRAS ---
-                // Ignora imediatamente qualquer dobradiça que não tenha o marcador do minimapa.
-                // Isso salva os armários, caixas e prateleiras de serem arrombados!
                 if (door.GetComponent("DirtFinderMapDoor") == null) continue;
 
-                float dist;
                 Collider doorCol = door.GetComponentInChildren<Collider>();
+                Vector3 checkStart = transform.position + Vector3.up * 0.5f;
+                Vector3 closestPoint = doorCol != null ? doorCol.ClosestPoint(transform.position) : door.transform.position;
 
-                if (doorCol != null)
+                float dist = Vector3.Distance(transform.position, closestPoint);
+
+                if (dist > minDistance) continue;
+
+                // 2. ANTI-PAREDE: Dispara um raio invisível até a porta. Se bater em parede no caminho, ignora a porta.
+                if (Physics.Linecast(checkStart, closestPoint, GetGroundMask(), QueryTriggerInteraction.Ignore))
                 {
-                    Vector3 closestPoint = doorCol.ClosestPoint(transform.position);
-                    dist = Vector3.Distance(transform.position, closestPoint);
-
-                    // DEBUG: Desenha uma linha fina roxa se a porta entrar no raio de detecção
-                    if (drawDebugRays && dist < 4.0f)
-                    {
-                        PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, closestPoint, new Color(0.6f, 0f, 1f, 0.5f), 0.35f);
-                    }
+                    continue;
                 }
-                else
+
+                if (drawDebugRays)
                 {
-                    dist = Vector3.Distance(transform.position, door.transform.position);
+                    PetRuntimeDrawer.DrawLine(checkStart, closestPoint, new Color(0.6f, 0f, 1f, 0.5f), 0.35f);
                 }
 
                 if (dist < minDistance)
@@ -216,46 +209,84 @@ namespace ElsaPetMod
 
             if (nearestDoor == null) return;
 
-            // DEBUG: Se achou o alvo final, desenha um laser rosa na porta escolhida por 2 segundos!
+            Vector3 doorTargetPos = nearestDoor.transform.position;
+            Collider mainDoorCol = nearestDoor.GetComponentInChildren<Collider>();
+            if (mainDoorCol != null)
+            {
+                doorTargetPos = mainDoorCol.bounds.center;
+            }
+
             if (drawDebugRays)
             {
-                PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, nearestDoor.transform.position, Color.magenta, 2.0f);
+                PetRuntimeDrawer.DrawLine(transform.position + Vector3.up * 0.5f, doorTargetPos, Color.magenta, 2.0f);
             }
 
             int instanceID = nearestDoor.GetInstanceID();
             if (doorOpenCooldowns.TryGetValue(instanceID, out float cd) && Time.time < cd) return;
 
-            // Cooldown de 2 segundos para não dar spam de chamadas
             doorOpenCooldowns[instanceID] = Time.time + 2.0f;
 
             try
             {
                 PhysGrabObject grabObj = nearestDoor.GetComponentInParent<PhysGrabObject>();
+                float doorMass = 1f;
+
                 if (grabObj != null)
                 {
                     grabObj.EnemyInteractTimeSet();
-                    // Deixa a porta bem leve temporariamente (1kg) para abrir fácil
-                    grabObj.OverrideMass(1f, 1.5f);
+                    doorMass = grabObj.massOriginal > 0f ? grabObj.massOriginal : 1f;
                 }
 
-                // Destrava a fechadura nativa do jogo
-                DoorOpenMethod.Invoke(nearestDoor, null);
+                // 1. A CURA DA TRANCA E DA MOLA AUTOMÁTICA
+                if (DoorClosedField != null)
+                {
+                    DoorClosedField.SetValue(nearestDoor, false);
+                }
+                if (CloseDisableTimerField != null)
+                {
+                    // Desliga o sistema de "fechar sozinho" (closeSpeed) por 2.5 segundos
+                    CloseDisableTimerField.SetValue(nearestDoor, 2.5f);
+                }
 
-                // --- A CURA DAS PORTAS DUPLAS (Empurrão Físico Orgânico) ---
+                DoorOpenMethod?.Invoke(nearestDoor, null);
+
                 Rigidbody rb = nearestDoor.GetComponent<Rigidbody>() ?? nearestDoor.GetComponentInParent<Rigidbody>();
 
                 if (rb != null && !rb.isKinematic)
                 {
                     rb.WakeUp();
+                    if (doorMass == 1f) doorMass = rb.mass;
 
-                    // Usa a exata direção horizontal em que a Ai-Chan está andando/olhando
-                    Vector3 pushDir = transform.forward;
-                    pushDir.y = 0f;
+                    Vector3 toDoor = doorTargetPos - transform.position;
+                    toDoor.y = 0f;
 
-                    // Dá um "chute" (Impulse) de 5kg na porta!
-                    // Ao aplicar a força no centro de massa, a Unity calcula o arco da dobradiça
-                    // automaticamente, forçando ambas as portas a abrirem para a frente, fugindo dela.
-                    rb.AddForce(pushDir.normalized * 15f, ForceMode.Impulse);
+                    Vector3 doorForward = nearestDoor.transform.forward;
+                    Vector3 doorRight = nearestDoor.transform.right;
+                    doorForward.y = 0f;
+                    doorRight.y = 0f;
+
+                    Vector3 pushDir = doorForward;
+
+                    if (Mathf.Abs(Vector3.Dot(toDoor.normalized, doorRight.normalized)) > Mathf.Abs(Vector3.Dot(toDoor.normalized, doorForward.normalized)))
+                    {
+                        pushDir = doorRight;
+                    }
+
+                    if (Vector3.Dot(pushDir, toDoor) < 0)
+                    {
+                        pushDir = -pushDir;
+                    }
+
+                    if (pushDir.sqrMagnitude < 0.001f) pushDir = transform.forward;
+
+                    // 2. A CURA DEFINITIVA DA FÍSICA: Escalonamento Dinâmico
+                    // Lê o atrito da porta (drag). Se for 2, dobra o multiplicador para vencer a lentidão.
+                    float dragMultiplier = Mathf.Max(1f, rb.drag);
+
+                    // Força base ajustada para 2.0f para não causar ricochete em portas leves
+                    float finalForce = 2.0f * doorMass * dragMultiplier;
+
+                    rb.AddForceAtPosition(pushDir.normalized * finalForce, doorTargetPos, ForceMode.Impulse);
                 }
             }
             catch (Exception ex)
@@ -1532,22 +1563,22 @@ namespace ElsaPetMod
                     if (physicalObstacleInFront && !isPreparingToJump && !targetElevated)
                     {
                         shouldSwitchToManual = true;
-                        switchReason = "Obstáculo físico (mesa/bancada) detectado à frente";
+                        switchReason = "Physical obstacle (table/counter) detected ahead";
                     }
                     else if (!targetElevated && !isTargetOnNavMesh)
                     {
                         shouldSwitchToManual = true;
-                        switchReason = "Alvo fora da NavMesh";
+                        switchReason = "Target outside NavMesh";
                     }
                     else if (!targetElevated && isPathEnded)
                     {
                         shouldSwitchToManual = true;
-                        switchReason = "Fim da NavMesh (transição para piso não mapeado)";
+                        switchReason = "End of NavMesh (transition to unmapped floor)";
                     }
                     else if (isStuckLooking && stuckTimer > 0.5f && !isPreparingToJump)
                     {
                         shouldSwitchToManual = true;
-                        switchReason = "Travamento físico por 0.5s";
+                        switchReason = "Physical lock for 0.5s";
                     }
                 }
 
@@ -2072,7 +2103,7 @@ namespace ElsaPetMod
                                         agent.isStopped = false;
                                         lastDestination = Vector3.positiveInfinity;
                                         lastSetDestinationTime = 0f;
-                                        LogNavMeshTransition(true, "Caminho desobstruído, retornando para NavMesh");
+                                        LogNavMeshTransition(true, "Path clear, returning to NavMesh");
                                     }
                                 }
                             }

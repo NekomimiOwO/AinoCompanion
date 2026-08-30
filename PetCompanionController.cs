@@ -16,6 +16,10 @@ namespace ElsaPetMod
         private static readonly FieldInfo GrabbedPhysGrabObjectField =
             AccessTools.Field(typeof(PhysGrabber), "grabbedPhysGrabObject");
 
+        // Fichário de Preferências dos Clients
+        public Dictionary<int, float> clientFollowDistances = new Dictionary<int, float>();
+        public Dictionary<int, float> clientStoppingDistances = new Dictionary<int, float>();
+
         public float maxHealth = 100f;
 
         public NavMeshAgent agent;

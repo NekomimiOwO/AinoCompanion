@@ -22,30 +22,46 @@ namespace ElsaPetMod
             if (aiAudio != null) aiAudio.PlayBark();
         }
 
-        public bool TryGetLookAheadGroundPoint(float defaultDistance, out Vector3 point)
+        public bool TryGetLookAheadGroundPoint(PlayerAvatar commander, float defaultDistance, out Vector3 point)
         {
             point = default;
-
-            Camera cam = Camera.main;
-            if (cam == null)
-                return false;
+            if (commander == null) return false;
 
             int mask = GetGroundMask();
             Vector3 targetPoint;
 
-            // 1. Tenta fazer o Raycast exato para onde a câmera está apontando
-            if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, 40f, mask, QueryTriggerInteraction.Ignore))
+            // A CURA DO LASER DO CLIENT:
+            // Se quem deu o comando for você no seu PC, usa a câmera com precisão absoluta.
+            // Se foi um Client pela rede, o Host calcula usando a direção do corpo/cabeça desse Client!
+            Vector3 origin;
+            Vector3 forward;
+
+            if (commander == SemiFunc.PlayerAvatarLocal() && Camera.main != null)
+            {
+                origin = Camera.main.transform.position;
+                forward = Camera.main.transform.forward;
+            }
+            else
+            {
+                // Pega a posição do boneco do Client sincronizado na tela do Host
+                origin = commander.transform.position + Vector3.up * 1.6f;
+                // Tenta pegar a rotação da câmera/cabeça dele, senão usa o peito
+                Transform head = commander.transform.Find("Head") ?? commander.transform;
+                forward = head.forward;
+            }
+
+            // 1. Tenta fazer o Raycast
+            if (Physics.Raycast(origin, forward, out RaycastHit hit, 40f, mask, QueryTriggerInteraction.Ignore))
             {
                 targetPoint = hit.point;
             }
             else
             {
                 // 2. Fallback caso olhe para o céu ou além do alcance
-                Vector3 flatForward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up);
-                if (flatForward.sqrMagnitude < 0.001f)
-                    return false;
+                Vector3 flatForward = Vector3.ProjectOnPlane(forward, Vector3.up);
+                if (flatForward.sqrMagnitude < 0.001f) flatForward = commander.transform.forward;
 
-                targetPoint = cam.transform.position + flatForward.normalized * defaultDistance;
+                targetPoint = commander.transform.position + flatForward.normalized * defaultDistance;
             }
 
             // 3. Encontra a NavMesh válida mais próxima do ponto
@@ -319,7 +335,8 @@ namespace ElsaPetMod
                             }
                         }
 
-                        if (pet.TryGetLookAheadGroundPoint(distance, out Vector3 target))
+                        // Passando o sender (quem digitou) para o cálculo da visão
+                        if (pet.TryGetLookAheadGroundPoint(sender, distance, out Vector3 target))
                             pet.CommandMoveTo(target, 0f);
 
                         return;
