@@ -17,13 +17,12 @@ A video of an older version of the mod:
 - <del>explode often deactivates her for a long time on ground (just pick her up and drop her, and she should come back...).</del>
 - She sometimes goes inside the store tables.
 - rewrite and revise the readme to make it seem less artificial.
-- delete "(like Factories/Mines)" from README
-- Fix rotation on multiplayer for the client (priority)
-- Investigate and fix the owner switch key
-- The go command is probably using the master instead of the owner
-- Remove: "NavMeshObstacle Carving Conflict: The PhysGrabCart actively carves a dynamic hole in the NavMesh. The Unity NavMeshAgent's native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh." from the readme, since she walks normally near the cart—even generating NavMesh paths through it.
-- Make the interpolation system better.
-- on the next update of my mod, revise for error before releasing.
+- <del>delete "(like Factories/Mines)" from README</del>
+- <del>Fix rotation on multiplayer for the client (priority)</del>
+- <del>Investigate and fix the owner switch key</del>
+- <del>The go command is probably using the master instead of the owner</del>
+- <del>Remove: "NavMeshObstacle Carving Conflict: The PhysGrabCart actively carves a dynamic hole in the NavMesh. The Unity NavMeshAgent's native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh." from the readme, since she walks normally near the cart—even generating NavMesh paths through it.
+- Make the interpolation system better.</del>
 
 ## Feedback
 
@@ -47,12 +46,12 @@ Below, the readme:
 ## Overview
 
 First of all, if you are seeing this mod on Thunderstore or any other modding platform, it means I decided the mod is good enough and not something broken that doesn't work properly.
-The initial idea and production for this mod began on August 6, 2026, at the end of my vacation and after I had finished creating my first simple mod to fix another mod (I didn't imagine it would be so difficult... I don't plan on making another mod anytime soon.)
-Since there have been many changes to the mod and each major change requires testing to be done from scratch, some parts of this readme might be outdated, though most of it should still be accurate.
+The initial idea and production for this mod began on August 6, 2026, at the end of my vacation and after I had finished creating my first simple mod to fix another mod (I didn't imagine it would be so difficult... I don't plan on making another mod anytime soon -_- )
+As there have been many changes to the mod, and each significant change requires testing to be performed from scratch, some parts of this readme may be outdated, although most of it should be correct.
 
 Ai-Chan Companion adds one pet companion to the game. She spawns automatically at the start of each level and in the shop, appears near a player, and chooses an owner to follow. 
 
-She uses advanced NavMesh navigation and Ghost Probing to move intelligently around obstacles, pathfinds toward her owner, can open doors natively, and includes recovery systems to prevent her from getting stuck. Players can grab and throw her as a physics object; after landing, she recovers and resumes following her owner.
+She uses NavMesh navigation and Ghost Probing to move intelligently around obstacles, pathfinds toward her owner, can open doors, and includes recovery systems to prevent her from getting stuck. Players can grab and throw her as a physics object; after landing, she recovers and resumes following her owner.
 
 In multiplayer, the host/Master Client is authoritative for the AI. Other players receive synchronized position, rotation, state, owner, and interaction events.
 
@@ -69,11 +68,11 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 - Can be grabbed, carried, and thrown by players.
 - Falling physics, knockdown impact resistance, and recovery after being released or hit by fast-moving objects.
 - No physical collision with players, preventing unwanted blocking and pushing.
-- Advanced NavMesh movement with Ghost Probing to avoid tables/walls, automatic jumps when stuck, try door opening, and an emergency safety teleport when stuck.
+- NavMesh movement with Ghost Probing to avoid tables/walls, automatic jumps when stuck, door opening, and an emergency safety teleport when stuck.
 - Accepts objects held by players based on configurable mass limits.
 - Carried Item Scaling(opcional): Items can optionally inherit her scale while she carries them (host only config).
 - Carries accepted items to the cart/delivery objective when a valid target is available. If two carts or more are present, she chooses the nearest; if no carts are present, she will go to the active extractor.
-- Can carry players in a tumble state.
+- Can carry players in a tumble state or in a dead state.
 - Audio feedback for commands and interactions.
 - Network Profiler for tracking the mod steam data usage.
 - Explosion!! :3
@@ -85,7 +84,7 @@ In multiplayer, the host/Master Client is authoritative for the AI. Other player
 1. Install **GenshinImpactOverhaul_REPO** by `GoblinKingShmee`. (If you want Aino but don't want the GenshinImpactOverhaul_REPO mod to replace the enemies, simply disable the replacement in the GenshinImpactOverhaul_REPO mod settings; my mod should still work.)
 2. Install **REPO_SteamNetworking_Lib** by `Rune580`.
 3. Install **Ai-Chan Companion** in the same profile.
-4. Install **MenuLib** by `nickklmao`.
+4. Install **REPOConfig** by `nickklmao`.
 5. Launch the game through Thunderstore Mod Manager or another compatible mod manager.
 
 > **Important:**
@@ -101,7 +100,7 @@ For a consistent multiplayer experience, every player in the lobby should use:
 - Ai-Chan Companion on the same version
 - GenshinImpactOverhaul_REPO
 - REPO_SteamNetworking_Lib
-- MenuLib
+- REPOConfig
 
 The mod requires strict compatibility with the Steam networking library. Using different versions can prevent loading or correct synchronization.
 
@@ -118,20 +117,18 @@ The mod requires strict compatibility with the Steam networking library. Using d
 
 ### Movement and recovery
 
-Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the new Ghost Probing system, she anticipates walls and obstacles to navigate. She can also open closed doors (or at least try) in her path. 
+Ai-Chan follows her owner through the NavMesh and stops near them according to the configured follow distances. With the probing system, it is able to navigate outside the navmesh. She can also open closed doors in her path. 
 
 If she encounters an obstacle or a partial path, she may perform an automatic jump. If she remains far above her owner for several seconds or falls into the void, the safety system teleports her to a navigable position near the owner.
 
-She can be grabbed and thrown. While held or falling, her navigation is paused. When she touches the ground — or after the recovery timeout — she stands up, finds the NavMesh again, and returns to the following state. Fast-moving heavy objects hitting her will also knock her down based on the configured impact resistance.
+She can be grabbed and thrown. While held or falling, her navigation is paused. When she touches the ground or after the recovery timeout she stands up, finds the NavMesh again, and returns to the following state. Fast-moving heavy objects hitting her will also knock her down based on the configured impact resistance.
 
 ## Pathfinding & Movement Overhaul (The "Jitter" Fix)
 After extensive debugging, a critical issue causing severe jittering, stuttering, and velocity drops (especially when carrying the player/items to the cart) has been completely resolved on August 24, 2026. (10+ hours just on it...I almost gave up on fixing it, it was soo exhausting). 
 
 **The Core Problems (Suspects):**
-1. **NavMeshObstacle Carving Conflict:** The `PhysGrabCart` actively carves a dynamic hole in the NavMesh. The Unity `NavMeshAgent`'s native obstacle avoidance would detect this hole and force the agent to violently brake (dropping speed from 3.5m/s to ~1.5m/s) to prevent "falling off" the NavMesh.
-2. **Procedural Floor Interpolation Tug-of-War:** In procedural levels (like Factories/Mines), the floor has micro-seams. The `NavMeshAgent` forced the position to snap to these seams, while the `Rigidbody` interpolation tried to smooth it out. This created a 60-frames-per-second mathematical conflict, resulting in visual "500ms ping" stutters.
-3. **Ragdoll Drag:** When carrying a player, only the main `PlayerTumble` colliders were disabled. The rest of the player's body (arms/legs) remained solid, dragging on the floor and applying a massive -15m/s physics drag against the pet.
-4. **Update vs LateUpdate Desync:** Calculating carrying positions in `Update` while the camera renders in `LateUpdate` created a 1-frame visual desynchronization.
+1. **Procedural Floor Interpolation Tug-of-War:** In procedural levels, the floor has micro-seams. The `NavMeshAgent` forced the position to snap to these seams, while the `Rigidbody` interpolation tried to smooth it out. This created a 60-frames-per-second mathematical conflict, resulting in visual stutters.
+2. **Update vs LateUpdate Desync:** Calculating carrying positions in `Update` while the camera renders in `LateUpdate` created a 1-frame visual desynchronization.
 
 **The Solution (The "Decoupled Agent" Architecture):**
 * **Brain/Body Decoupling:** Disabled `agent.updatePosition` and `agent.updateRotation`. The `NavMeshAgent` (the brain) now silently calculates the perfect mathematical path, while the physical 3D model (the body) uses a smooth `Vector3.Lerp` to follow it. This entirely absorbs any procedural floor bumps.
@@ -141,7 +138,7 @@ After extensive debugging, a critical issue causing severe jittering, stuttering
 
 ### Items and rescue
 
-1. Hold a physics item (She will not pick up carts, monsters, doors, or dead players [dead player carrying may be supported in the future]).
+1. Hold a physics item (She will not pick up carts, monsters, environment objects like doors or cosmetic boxes).
 2. Stand near Ai-Chan.
 3. Press the give-item key, `R` by default.
 4. She picks up the object and attempts to bring it to the available cart/delivery destination.
@@ -149,6 +146,7 @@ After extensive debugging, a critical issue causing severe jittering, stuttering
 6. If she is grabbed or falls during the delivery, the item will drop on the ground near her.
 
 The same interaction can be used with a player in a downed/tumble state. Hold a downed teammate and press `R`, or, if your own character is downed, press `R` while holding no item. Ai-Chan will attempt to carry that player.
+She can optionally carry dead players.
 
 > The accepted maximum item mass is configurable and defaults to 3. The internal item-give distance defaults to 4.5 m. Carried items can optionally scale to match Ai-Chan's current size by enabling the `Inherit Pet Scale On Carry` setting.
 
@@ -159,7 +157,7 @@ In the shop, Ai-Chan can deliver items to the **Extraction Point** (the shop's "
 - The extraction point must be **unlocked and active**.
 - If the extraction point is locked, Ai-Chan will **instantly drop the item or player** at her feet instead of attempting delivery.
 - This prevents the pet from getting stuck trying to deliver to an unavailable objective.
-- She will not pick up carts.
+- She will not pick up carts (It would be chaos if she could 0.0).
 
 When a valid extraction point is available, Ai-Chan approaches it and drops the item at a randomized position within the "In Cart" collider to avoid stacking items exactly on top of each other.
 
@@ -169,7 +167,7 @@ When a valid extraction point is available, Ai-Chan approaches it and drops the 
 |---|---:|---|
 | Pet Ai-Chan | `E` | Be within 3 m, look at Ai-Chan, has a 1-second cooldown |
 | Give item / carry player | `R` | Be near the pet; the item or player must be valid |
-| Switch owner | `F5` | Only the current owner can use it |
+| Switch owner | `F5` | Only the current owner can use it | 
 
 All three keys can be changed in the configuration.
 
@@ -200,13 +198,14 @@ To recognize a command, the chat message must include a pet keyword: `aino`, `ai
 > Commands that change the AI are processed by the Master Client. This prevents different clients from controlling the same pet at the same time.
 > Chat messages are read locally only to trigger pet commands and are not hosted, stored, or sent to any external server.
 > Why not just a keybind? Aside from there being so many commands, I thought it would be cool to hear commands from friends, since the game has a chat-reading system.
-> Supports English and Portuguese aliases
+> Supports English and Brazilian Portuguese aliases.
 
 ## Configuration
 
 After launching the game once, open the in‑game ModMenu configuration UI to adjust Ai‑Chan settings.
 
-For now, only the host apparently defines the configuration for everyone; I'll change that to allow some settings for the client as well, such as Follow Range, Stopping Distance, Audio...but there is no expectation for me to do it for now.
+While the host still dictates the global physics configurations for everyone, clients can now define their own personal settings as well, such as Follow Range and Stopping Distance. These client-specific preferences are automatically read and applied every time she spawns in a level.
+
 Don't be afraid to change these movement, interaction, and physics settings, as they may not be balanced or fit your play style.
 
 | Section | Option | Default | Range / description |
@@ -220,9 +219,11 @@ Don't be afraid to change these movement, interaction, and physics settings, as 
 | Movement | `Auto Jump Stuck Delay` | `1.0` | Time spent stuck before attempting an automatic jump (0.5 to 5s) |
 | Movement | `Follow Range (Start)` | `2.0` | Distance at which she begins following (0.5 to 10m) |
 | Movement | `Stopping Distance (Stop)`| `2.0` | Distance at which she stops near the owner (0.1 to 10m) |
-| Movement | `Min Jump Obstacle Height` | `1.0` | Minimum obstacle height to jump (0.35m to 2.5m). Allows smooth stair walking |
+| Movement | `Min Jump Obstacle Height` | `0.75` | Minimum obstacle height to jump (0.35m to 2.5m). Allows smooth stair walking |
 | Movement | `Max Jump Obstacle Height` | `3.5` | Maximum obstacle height she will attempt to jump onto (1.5m to 8.0m) |
+| Interaction | `Enable Carrying Dead Players`| `true` | Allows Ai-Chan to carry dead player heads to the cart/extraction like a normal item |
 | Interaction | `Max Carried Mass` | `3.0` | Maximum item mass Ai-Chan can carry (0.5 to 20) |
+| Interaction | `Enable Door Opening` | `true` | Allows Ai-Chan to unlock and physically push open nearby map doors.|
 | Interaction | `Inherit Pet Scale On Carry`| `false` | Carried items scale proportionally with the pet's size |
 | Commands | `Enable Explode Command` | `false` | Enables owner chat commands to detonate the pet |
 | Explosion | `Player Damage` | `10` | Damage dealt to players within the explosion radius (0 to 200) |
@@ -234,13 +235,17 @@ Don't be afraid to change these movement, interaction, and physics settings, as 
 | Physics | `Stand Up Delay` | `2.0` | Delay before standing after a fall (0 to 10 seconds) |
 | Physics | `Angular Drag` | `0.5` | Rotational resistance while thrown (0 to 10) |
 | Audio | `Volume` | `50` | Audio volume percentage (0 to 100) |
-| Multiplayer | `Owner Switch Interval` | `3.0` | Automatic owner-switch interval in minutes (0 disables it) |
+| Multiplayer | `Owner Switch Interval` | `3.0` | Automatic owner-switch interval in minutes.|
+| Multiplayer | `Enable Adaptive Interpolation`| `true` | Dynamically adjusts movement smoothness based on internet fluctuation and delay |
+| Multiplayer | `Enable Anti-Flick Rotation`| `true` | Prevents Ai-Chan from doing bizarre spins when packets are dropped |
+| Multiplayer | `Enable Snapshot Interpolation`| `true` | Uses a Jitter Buffer that delays Ai-Chan slightly in the past for smoothness |
+| Multiplayer | `Snapshot Buffer (ms)` | `100` | The size of the Snapshot delay. (50 to 500ms) |
 | Controls | `Give Item Key` | `R` | Item/rescue interaction key |
 | Controls | `Pet Key` | `E` | Petting key |
 | Controls | `Switch Owner Key` | `F5` | Key to transfer the pet to the next player |
 | Logs | `Enable Debug Logs` | `true` | Enables network and debug logs in the console |
 | Logs | `Enable State Transition Logs`| `false` | Logs detailed pet state transitions |
-| Logs | `Enable NavMesh Transition Logs`| `false`| Logs when Ai-Chan enters or leaves the NavMesh |
+| Logs | `Enable NavMesh Transition Logs`| `false` | Logs when Ai-Chan enters or leaves the NavMesh |
 | Logs | `Enable Carry Logs` | `false` | Logs verbose delivery and jitter diagnostics (spams console) |
 | Performance | `Enable Ghost Probing` | `true` | Enables multi-ray pathfinding to avoid tables/walls smoothly |
 | Performance | `Ghost Probe Distance` | `2.5` | Distance ghost probes look ahead to avoid walls (1.0 to 5.0m) |
@@ -249,8 +254,29 @@ Don't be afraid to change these movement, interaction, and physics settings, as 
 | Performance | `Enable Debug Rays` | `false` | Visualizes the ghost simulation paths in-game (Host only) |
 | Performance | `Debug Rays Fade Time` | `0.25` | How long debug rays remain visible on screen |
 | Performance | `Debug Breadcrumbs Fade Time`| `0.15` | How long breadcrumb trail rays remain visible |
+| Experimental | `Enable Network Shadow` | `false` | Spawns on start a ghost Ai-Chan next to the real one in Singleplayer to visualize a network simulation |
+| Experimental | `Shadow Simulated Ping` | `50` | Simulated latency for the ghost in milliseconds (0 to 100ms) |
+| Experimental | `Shadow Packet Loss (%)`| `5` | Simulated packet loss percentage for the ghost (0 to 100%) |
+| Experimental | `Shadow Simulated Jitter` | `20` | Simulated ping fluctuation for the ghost in milliseconds (0 to 200ms) |
 
 > I'm from Brazil, so don't be surprised if I forgot to translate some of the logs into English, oops :3
+
+
+### Explanation of some network settings added for my mod (client-side)
+
+**Snapshot Buffer (ms)**
+This setting defines the size of the "waiting room" for incoming network packets. **It does not add to the server's tick rate.** The Host always broadcasts Ai-Chan's position every 50ms (20 times per second). 
+
+*   **`100` (Default & Recommended):** The Client holds exactly 2 packets in reserve before rendering the movement. This guarantees a mathematically perfect, buttery-smooth glide even if your internet fluctuates or drops packets.
+*   **`50` (LAN):** The Client holds only 1 packet in reserve. Ai-Chan will react almost in true real-time, but there is **zero margin for error**. If a packet is delayed by even 1 millisecond due to ping jitter, the buffer dries up and the pet will micro-stutter on your screen.
+*   **`150+` (Unstable Connections):** Increases the reserve to 3+ packets. Use this only if playing with very high ping or severe Wi-Fi packet loss.
+
+**Enable Adaptive Interpolation**
+Acts as a fallback system. If your internet completely chokes and the Snapshot Buffer runs dry, this dynamic system takes over. It constantly monitors your real-time ping fluctuation (jitter) and automatically downgrades Ai-Chan's interpolation speed to prevent severe rubber-banding, keeping her movement as smooth as possible until the connection stabilizes.
+
+**Enable Anti-Flick Rotation**
+A strict mathematical safety lock for her spine. When playing online, lost packets can cause severe rotation desyncs, making characters do bizarre backflips or snap their necks (Gimbal Lock) when the next packet suddenly arrives. If her rotation difference exceeds 100 degrees instantly, this setting overrides the organic physics and forces a restricted rotation path to keep her looking natural.
+
 
 ## Multiplayer networking
 
@@ -268,6 +294,11 @@ The Master Client is responsible for:
 - switching the owner;
 
 Remote clients do not run pet navigation or physics. They reproduce the received position, rotation, state, and owner, while keeping the `Rigidbody` kinematic to avoid physics divergence.
+
+The host should have the best computer among the players to avoid network lag regarding the pet for the clients. The mod should not be resource-heavy, it ran okay on my 3 year old laptop with intel integrated graphics.
+
+The most resource-intensive part of the mod is likely when she navigates outside the navmesh; reduce the number of rays if necessary.
+
 
 ### State updates
 
@@ -288,6 +319,7 @@ In addition to continuous state, Steam networking sends dedicated packets for:
 
 - pet spawning and synchronization for late-joining players;
 - synchronization requests to the host;
+- client-specific configuration preferences to the host;
 - item delivery;
 - player-carry requests;
 - picking up and dropping an item or player (including scale inheritance);
@@ -295,7 +327,7 @@ In addition to continuous state, Steam networking sends dedicated packets for:
 - manual owner switching.
 - explosion trigger and countdown;
 
-Item delivery, player carrying, and owner-switch events are sent to the host. The host resolves the referenced objects through their `PhotonView`, executes the authoritative action, and sends the necessary visual results to the other players.
+Item delivery, player carrying, and owner-switch events are sent to the host. The host resolves the referenced objects through their `PhotonView`, executes the authoritative action, and sends the necessary results to the other players via steam network.
 
 ## Troubleshooting
 
@@ -317,29 +349,23 @@ Item delivery, player carrying, and owner-switch events are sent to the host. Th
 - Hold a valid physics item that does not exceed `Max Carried Mass`.
 - Make sure the pet isn't already carrying something.
 
-### Ai-Chan appears stuck
-
-- Give the automatic jump or safety teleport a few seconds to activate.
-- The new Ghost Probing system will attempt to navigate around most objects automatically.
-- Avoid leaving her in areas without NavMesh.
-- Adjust `Auto Jump Stuck Delay`, `Speed`, and `Ghost Probe Rays` settings if needed.
-
 ## Compatibility and notes
 
 - This mod is made for REPO and relies on game-provided classes, physics layers, NavMesh, and networking.
 - The mod uses the Aino visual/prefab supplied by GenshinImpactOverhaul_REPO.
 - In multiplayer, the host should maintain a stable connection because it is authoritative for the AI.
 - Mods that heavily alter Photon, `PhysGrabObject` physics, carts, NavMesh, or the Aino prefab may cause incompatibilities.
+- A major game update could potentially break this mod.
 
 ## Credits
 
-- **Ai-Chan Companion:** mod development.
 - **BepInEx:** plugin loader.
 - **Harmony:** runtime patching.
 - **GenshinImpactOverhaul_REPO:** Insert Aino prefab/visual into the game, by `GoblinKingShmee`.
 - **REPO_SteamNetworking_Lib:** Steam-based packets and multiplayer synchronization by `Rune580`.
-- **MenuLib (nickklmao):** in‑game configuration UI library.
-- **REPO:** base game, physics, navigation, Photon, and interaction systems.
+- **REPOConfig (nickklmao):** in‑game configuration UI library.
+- **R.E.P.O:** base game, physics, navigation, Photon, and interaction systems.
+- **UnityExplorer** it really helped with in-game debugging.
 
 ## Thanks
 
@@ -362,12 +388,36 @@ For example, I was suggested to use an in-game item as a grab mechanism for Ai-C
 
 A lot was fixed through this back-and-forth process. Many hours were spent on this mod, which I created with a lot of care~
 
-## Known issues? Not sure because I fixed a lot of things...
+### Debug Rays Color Guide
 
-- Sometimes she won't find the path to the cart if it is too far away or if the map has dead-ends on the way back.
-- Her pathfinding is kinda experimental, so she might get lost if no one is in her direct line of sight.
-- When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it.
-- For the multiplayer client, its rotation might appear jittery or stuck.
+When `Enable Debug Rays` is turned on in the settings, Ai-Chan will project various colored lines to visualize her internal AI decisions in real-time:
+
+**Pathfinding & Probing**
+* **Cyan (Light Blue):** represents the active NavMesh GPS route.
+* **White:** Vertical markers showing the exact corners/waypoints of her current NavMesh path.
+
+**Manual Mode (No navmesh available)**
+* **Cyan (Light Blue):** Free future path. The ghost probe traveled its full distance without hitting walls. 
+* **Red:** Blocked path. A probe hit a wall/obstacle.
+* **Green:** Best chosen path. The final, direction the AI selected to move forward safely.
+* **Orange:** Breadcrumb trail system. Visualizes the recent safe steps taken by the owner and the links between them.
+
+**Jumps & Physics**
+* **Blue:** The path directly in front is clear of obstacles during a jump scan.
+* **Green (Vertical):** A confirmed safe landing spot for an automatic jump.
+* **Yellow:** Visualizes the predicted mathematical arc trajectory of an automatic jump.
+* **Magenta:** Marks an abyss/drop-off detected, or a valid elevated ledge she is preparing to jump onto.
+
+**Interactions**
+* **Purple (Crosshair):** Door detection radar. Shows the area she is scanning to find map doors.
+* **Magenta (Laser):** When she locks onto a closed door and is about to physically push it open.
+
+
+## Known issues
+
+- Her pathfinding is kinda experimental, so she might get lost if no one is in her direct line of sight, mainly in outside the navmesh.
+- When spawning, she sometimes won't attach to the NavMesh properly and won't move (or moves very slowly). Just grab her and release; she will correct it. (I'm not sure if this is still happening)
+- If the item explodes in her hand while she is carrying it, the item is not destroyed.
 
 ## Mod architecture (Just for curiosity, line counts might be outdated)
 
@@ -381,7 +431,7 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 | `PetCompanionController.Delivery.cs` | 1421 | Controls item delivery and downed-player pick up. Finds carts and extractors, validates items, picks up and carries targets, handles drops, manages shop delivery behavior, and synchronizes carried objects. |
 | `PetCompanionController.Explosion.cs` | 350 | Implements explosion mechanics: countdown coroutine, 3D billboard text tag, accelerating spatial audio beeps with dynamic pitch, game native particle explosion spawning, player/enemy damage application, physical impulse forces, and `PetExplodePacket` network synchronization. |
 | `PetCompanionController.Interactions.cs` | 238 | Controls pet interactions: petting, heart particles, petting animation, sounds and stun behavior. |
-| `PetCompanionController.Navigation.cs` | 1917 | Implements movement and pathfinding. Includes NavMesh following, owner switching, automatic jumps, Ghost Probing, native door opening, anti-stuck systems, breadcrumbs, manual movement fallback, floor detection, and emergency teleports. |
+| `PetCompanionController.Navigation.cs` | 1917 | Implements movement and pathfinding. Includes NavMesh following, owner switching, automatic jumps, Ghost Probing, door opening, anti-stuck systems, breadcrumbs, manual movement fallback, floor detection, and emergency teleports. |
 | `PetInteraction.cs` | 261 | Reads local player input and converts it into pet interactions: petting, giving an item, carrying a downed player, and manually switching the owner. |
 | `PetNetworkBridge.cs` | 307 | Bridges the pet controller with Steam/Photon networking. Sends and receives state snapshots, spawn events, petting, deliveries, player rescue requests, owner switching, and carry synchronization. |
 | `PetNetworkProfiler.cs` | 82 | Tracks mod network usage: sent/received bytes, current upload/download rate, total traffic, uptime, and console statistics. |
@@ -394,9 +444,22 @@ A lot was fixed through this back-and-forth process. Many hours were spent on th
 
 ya..I briefly tested making a "general" version; I might even make it available later (without posting it because it's kind of terrible and it's way behind compared to what this mod does). Some models have specific peculiarities while others are easier, so I focused only on Aino, which is what initially motivated me to make this mod. But in theory, it would be possible to extend this in the future... or maybe load custom models without dependency. I don't know how imports work... hence the dependency on the GenshinImpactOverhaul_REPO mod.
 
-Don't expect many updates, since I'm busy with a lot of things... nya~
+Don't expect many updates, since I'm busy with a lot of things...but I'll try my best to fix the most critical issues that may appear, nya~
 
 Anyway, I hope you have fun and give Aino lots of headpats!~
+/ᐠ - ˕ -マ
+
+## Feedback
+
+For feedback, suggestions, or to report errors, feel free to use my **[Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLScmZjEb3weX5crLXjnJZaA0WBDP47EC4TETDK8DDkSCmK28fw/viewform?usp=dialog)**. 
+*(No email address required)*
+
+*(This is a great option if you prefer not to contact me directly but still want to share your thoughts.)*
+
+## Contact
+
+You can contact me at discord: nekomimiowo
+or at the github of this mod: https://github.com/NekomimiOwO/AinoCompanion
 
 
 ## Contact
