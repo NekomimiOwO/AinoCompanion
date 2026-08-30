@@ -42,7 +42,7 @@ A video of an older version of the mod:
   When the buffer is full because of a network stall, drop the oldest snapshots first and allow the render time to catch up gradually instead of teleporting immediately. This avoids jarring jumps after long disconnections.
 
 - [ ] Add a "keep-alive" snapshot when idle for >1 s
-  If the pet has been stationary for more than 1 second, send a single lightweight snapshot (position/rotation only, no state) so that clients can measure realistic packet delay even when the pet is not moving. This prevents the adaptive interpolation from being fooled by long idle periods.
+  If the pet has been stationary for more than 1 second, send a single lightweight snapshot (position/rotation only, no state) so that clients can measure realistic packet delay even when the pet is not moving. This prevents the adaptive interpolation from being fooled by long idle periods. (most important?)
 
 - [ ] Validate and discard malformed or impossible packets
   Before applying received PetStatePacket, check that the position is within a reasonable bounding box (e.g., current level bounds) and the rotation is not NaN. Discard invalid packets to avoid breaking the pet's transform.
