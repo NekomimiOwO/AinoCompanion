@@ -51,6 +51,8 @@ A video of an older version of the mod:
 - [ ] **(Maybe) Separate continuous snapshots to Unreliable transport**
   If `RepoSteamNetworking` adds support for specifying transport modes, switch `PetStatePacket` to `SendType.Unreliable` (`0`) or `SendType.NoNagle` (`1`), keeping RPCs and discrete state events on `SendType.Reliable` (`8`) to eliminate Head-of-Line Blocking entirely.
 
+- [ ] Adicionar um ping a tag da aino? talvez
+
 ---
 
 ### Resolved / Superseded Items
