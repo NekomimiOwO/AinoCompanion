@@ -37,7 +37,7 @@ A video of an older version of the mod:
   Before applying `PetStatePacket` data to transforms or rigidbodies, verify that coordinates and rotations do not contain `float.IsNaN`, `float.IsInfinity`, or degenerate quaternions `(0, 0, 0, 0)`. Discard invalid packets to prevent Unity matrix corruption, invisible meshes, and console spam.
 
 - [ ] **Include target entity ID in continuous snapshots (Full Self-Healing)**
-  Extend `PetStatePacket` to include `CarriedTargetViewID` (int) when the pet is in `CarryItemToCart` state. If a client joins late or encounters a lifecycle desync, the next 50 ms snapshot allows immediate visual binding to the correct item/player without relying exclusively on one-time sync events.
+  Extend `PetStatePacket` to include `CarriedTargetViewID` (int) when the pet is in `CarryItemToCart` state. If a client encounters a lifecycle desync, the next 50 ms snapshot allows immediate visual binding to the correct item/player without relying exclusively on one-time sync events.
 
 - [ ] **Fix stationary heartbeat deadzone in `ShouldSendNetworkTransform`**
   In `PetCompanionController`, the condition `!moving && !recentMovement && !movedEnough && !rotatedEnough && hasNetworkSentTransform` completely halts packet transmission when idle. Adjust the logic so that the pet continues to send a lightweight transform packet at the planned `NetworkStoppedInterval` (1.5s) to anchor position and support late-joining clients.
