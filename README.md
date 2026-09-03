@@ -48,7 +48,7 @@ A video of an older version of the mod:
 - [ ] **Add debug logging for network anomalies**
   Utilize `Plugin.LogDebug(Plugin.LogCategory.SteamNet, ...)` behind `PetSettings.EnableDebugLogs` to log dropped packets, buffer overflow discards, missing `PhotonView` targets, and invalid float values.
 
-- [ ] **(Optional/Upstream) Separate continuous snapshots to Unreliable transport**
+- [ ] **(Maybe) Separate continuous snapshots to Unreliable transport**
   If `RepoSteamNetworking` adds support for specifying transport modes, switch `PetStatePacket` to `SendType.Unreliable` (`0`) or `SendType.NoNagle` (`1`), keeping RPCs and discrete state events on `SendType.Reliable` (`8`) to eliminate Head-of-Line Blocking entirely.
 
 ---
