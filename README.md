@@ -26,30 +26,46 @@ A video of an older version of the mod:
 
 ## Network Infrastructure Hardening To-Do List (It will not be done soon)
 
-- [ ] Use reliable sending for critical one-time events
-  Switch PetGiveItemPacket, PetCarryPlayerPacket, PetSyncCarryPacket, PetSyncPettingPacket, PetExplodePacket, and PetSwitchOwnerPacket to a reliable transport mode (if supported by RepoSteamNetworking). This guarantees delivery at the cost of a few extra bytes only when an event occurs.
+### Verified Architecture Notes
+> **Transport Mode Reality:** `RepoSteamNetworking` transmits all messages using `(SendType)8` (`SendType.Reliable` / `k_nSteamNetworkingSend_Reliable`). This guarantees in-order, lossless packet delivery at the transport layer, eliminating the need for manual event retransmission or sequence filtering. However, running high-frequency 20 Hz position snapshots over a reliable stream introduces Head-of-Line Blocking during packet loss, which requires specific client-side buffering care.
 
-- [ ] Add sequence numbers to discrete event packets
-  Include a monotonically increasing Sequence field in all event packets (e.g., PetSyncCarryPacket). On the receiver, ignore any packet with a sequence <= the last processed one to prevent out-of-order execution.
+---
 
-- [ ] Re-send client preferences until acknowledged
-  Modify SendPreferencesRoutine to send PetClientPreferencesPacket periodically (e.g., every 2 seconds) until the host sends a small acknowledgment packet back. This prevents lost preferences from causing fallback to default distances.
+### Active Action Items
 
-- [ ] Include minimal state flags in continuous snapshots
-  Add a single byte bitmask to PetStatePacket that indicates whether the pet is currently carrying an item or a player. This allows clients to correct a lost PetSyncCarryPacket within the next 50 ms snapshot, without needing the full target ViewID (which can be corrected later via event or on next sync).
+- [ ] **Sanitize and validate incoming transform packets**
+  Before applying `PetStatePacket` data to transforms or rigidbodies, verify that coordinates and rotations do not contain `float.IsNaN`, `float.IsInfinity`, or degenerate quaternions `(0, 0, 0, 0)`. Discard invalid packets to prevent Unity matrix corruption, invisible meshes, and console spam.
 
-- [ ] Improve snapshot buffer overflow handling
-  When the buffer is full because of a network stall, drop the oldest snapshots first and allow the render time to catch up gradually instead of teleporting immediately. This avoids jarring jumps after long disconnections.
+- [ ] **Include target entity ID in continuous snapshots (Full Self-Healing)**
+  Extend `PetStatePacket` to include `CarriedTargetViewID` (int) when the pet is in `CarryItemToCart` state. If a client joins late or encounters a lifecycle desync, the next 50 ms snapshot allows immediate visual binding to the correct item/player without relying exclusively on one-time sync events.
 
-- [ ] Add a "keep-alive" snapshot when idle for >1 s
-  If the pet has been stationary for more than 1 second, send a single lightweight snapshot (position/rotation only, no state) so that clients can measure realistic packet delay even when the pet is not moving. This prevents the adaptive interpolation from being fooled by long idle periods. (most important?)
+- [ ] **Fix stationary heartbeat deadzone in `ShouldSendNetworkTransform`**
+  In `PetCompanionController`, the condition `!moving && !recentMovement && !movedEnough && !rotatedEnough && hasNetworkSentTransform` completely halts packet transmission when idle. Adjust the logic so that the pet continues to send a lightweight transform packet at the planned `NetworkStoppedInterval` (1.5s) to anchor position and support late-joining clients.
 
-- [ ] Validate and discard malformed or impossible packets
-  Before applying received PetStatePacket, check that the position is within a reasonable bounding box (e.g., current level bounds) and the rotation is not NaN. Discard invalid packets to avoid breaking the pet's transform.
+- [ ] **Implement dynamic catch-up (time dilation) for snapshot bursts**
+  Because the reliable transport can cause packet bursts after network stalls, the client buffer receives multiple snapshots in a single frame. Instead of hard-clamping synthetic local timestamps into the future (`packetTime = Mathf.Max(...)`), implement a slight playback speed-up (5%–10% time dilation) when the buffer exceeds target capacity, draining backlog smoothly before resorting to a hard snap.
 
-- [ ] Log network anomalies for debugging
-  Add optional debug logging when a packet is dropped due to out-of-order, buffer overflow, or invalid data. This helps identify issues without affecting normal gameplay.
+- [ ] **Add debug logging for network anomalies**
+  Utilize `Plugin.LogDebug(Plugin.LogCategory.SteamNet, ...)` behind `PetSettings.EnableDebugLogs` to log dropped packets, buffer overflow discards, missing `PhotonView` targets, and invalid float values.
 
+- [ ] **(Optional/Upstream) Separate continuous snapshots to Unreliable transport**
+  If `RepoSteamNetworking` adds support for specifying transport modes, switch `PetStatePacket` to `SendType.Unreliable` (`0`) or `SendType.NoNagle` (`1`), keeping RPCs and discrete state events on `SendType.Reliable` (`8`) to eliminate Head-of-Line Blocking entirely.
+
+---
+
+### Resolved / Superseded Items
+
+- [x] ~~**Use reliable sending for critical one-time events**~~
+  *Status: Already satisfied.* `RepoSteamNetworking` forces `(SendType)8` across all send paths, ensuring reliable delivery for `PetGiveItemPacket`, `PetSyncCarryPacket`, `PetExplodePacket`, etc.
+
+- [x] ~~**Add sequence numbers to discrete event packets**~~
+  *Status: Unnecessary / Superseded.* Steamworks Reliable channels guarantee strict in-order packet delivery. Applying sequence-based dropping on discrete state transitions is redundant and risks dropping valid state transitions.
+
+- [x] ~~**Re-send client preferences until acknowledged**~~
+  *Status: Already satisfied by transport.* `PetClientPreferencesPacket` is sent reliably via Steam. Ensure only that the local avatar and room connection are valid before invoking `SendPreferencesRoutine`.
+
+- [x] ~~**Drop oldest snapshots on buffer overflow**~~
+  *Status: Already implemented.* `NetworkInterpolation.cs` already executes `if (stateBuffer.Count > 20) stateBuffer.RemoveAt(0);`.
 
 ## Feedback
 
